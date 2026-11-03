@@ -1,0 +1,1642 @@
+/* visual.scss — 메인 비주얼 (인트로 + 유리 도형 + 타이틀)
+   js/visual.js와 함께 사용. 헤더 스타일은 포함하지 않음 */
+
+@import "vars"; // 공용 변수 · 믹스인 (_vars.scss)
+@import "contact_form"; // 상담 폼 모양 (_contact_form.scss — 오른쪽 아래 문의칸과 같이 씀)
+
+/* 폰트: Paperlogy는 layout.scss에서 불러오고(모든 페이지), 글꼴은 css/default.css의 body · 폼 요소에서 한 번에 지정
+   — 여기서는 기본 글꼴이 고정폭인 code · pre 등만 따로 지정 */
+
+/* ---------- 기본 (사이트에 리셋 CSS가 있으면 지워도 됨) ---------- */
+// Next.js: 페이지를 오가도 이 CSS가 남아 있으므로 메인(.visual이 있는 페이지)에만 적용
+html:has(.visual),
+body:has(.visual) {
+	background: $bg; // (margin · padding · box-sizing · 글꼴 초기화는 css/default.css)
+	overscroll-behavior: none; // 맨 위 · 맨 아래에서 더 당겨지거나 튕기지 않게
+}
+
+// 부드러운 스크롤 Lenis (visual.js가 1024px 이상에서 켬 — html에 .lenis 클래스가 붙음)
+html.lenis,
+html.lenis body {
+	height: auto;
+}
+.lenis.lenis-smooth {
+	scroll-behavior: auto !important;
+}
+.lenis.lenis-stopped {
+	overflow: hidden;
+}
+
+/* ---------- 비주얼 ---------- */
+.visual {
+	position: relative;
+	height: 400vh;
+	height: 550svh; // 첫 화면 + 타이틀이 앞으로 올라오는 구간(1화면, visual.js FRONT) + 머무는 구간(0.5화면, PAUSE) + 브랜드 설명 구간(2화면, visual.js HOLD) + 타이틀 → What We Do 전환 구간 (그 뒤로 .service가 도형 위로 올라옴)
+	@include side-var;
+
+	// 브랜드 설명: 화면에 고정 — 타이틀 ondoor.(캔버스)이 스크롤로 왼쪽에 오면 그 바로 밑에 나타남
+	// 글자마다 <i>, 스크롤한 만큼 흐린 색 → 흰색으로 채워짐 · 타이틀이 빠질 때 함께 사라짐 (visual.js)
+	// top: js가 [타이틀 + 간격 + 설명] 덩어리가 화면 세로 가운데에 오도록 계산해서 넣음 — 아래 값은 js가 없을 때 대신
+	.brand {
+		position: fixed;
+		top: calc(50% + 84px);
+		left: var(--side);
+		right: var(--side);
+		z-index: 1;
+		pointer-events: none;
+
+		p {
+			margin: 0;
+			font-size: 24px;
+			line-height: 40px;
+			font-weight: 400;
+			color: rgba(255, 255, 255, 0.2);
+			word-break: keep-all;
+		}
+		i {
+		}
+		// 브랜드명 강조: 대문자 · 굵기 900
+		strong {
+			font-weight: 900;
+			text-transform: uppercase;
+		}
+
+		// 타이틀 글자 크기가 vw로 바뀌는 구간 (11.7vw / 13vw)
+		@media (max-width: 1024px) {
+			top: calc(50% + 4.2vw + 32px);
+		}
+		@media (max-width: 480px) {
+			top: calc(50% + 4.7vw + 24px);
+
+			p {
+				font-size: 18px;
+				line-height: 32px;
+			}
+		}
+	}
+	// 처음엔 숨김 (페이지를 열 때 원문이 먼저 보이지 않게) → visual.js가 타이틀이 옆으로 갈 때 보여 줌
+	.brand {
+		opacity: 0;
+		visibility: hidden;
+	}
+	background: $bg;
+
+	// 캔버스 (js가 안에 <canvas>를 넣음) — 화면에 고정, 아래 섹션(.service)이 그 위로 올라옴
+	.canvas_wrap {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100vh;
+		height: 100svh;
+		z-index: 0;
+	}
+
+	// 타이틀 원문: 검색·스크린리더용으로 남겨 두고 화면 글자는 캔버스가 그림 (js가 opacity 0으로 숨김)
+	.slg {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100vh;
+		height: 100svh; // 첫 화면 가운데
+		z-index: 1;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		pointer-events: none;
+
+		// 크기: 캔버스 타이틀 첫 화면 크기와 같게 (visual.js textSize 120px · textSizeM × titleScale 148/120 — WebGL이 없을 때 이 글자가 대신 보임)
+		.tit h2 {
+			opacity: 0; // 처음부터 숨김 (화면 글자는 캔버스가 그림 — 페이지를 열 때 원문이 먼저 보이지 않게)
+			font-size: 148px;
+			font-weight: 900;
+			line-height: 1;
+			color: #fff;
+			text-align: center;
+			text-transform: uppercase;
+
+			@media (max-width: 1024px) {
+				font-size: 14.43vw; // 11.7vw × 148/120
+			}
+			@media (max-width: 480px) {
+				font-size: 16.03vw; // 13vw × 148/120
+			}
+		}
+	}
+
+	// WebGL을 못 쓰는 환경: 캔버스 대신 원문 타이틀을 그대로 보여 줌
+	&.is-no-webgl .slg .tit h2,
+	&.is-no-webgl .brand {
+		opacity: 1 !important;
+		visibility: visible !important;
+	}
+}
+
+/* ---------- 인트로 ---------- */
+// 인트로 동안 비주얼 아래 내용은 숨겼다가, 끝나면 아래에서 올라오며 나타남 (스크롤 잠금은 js)
+.visual ~ * {
+	transition:
+		opacity 1.2s $ease-out,
+		transform 1.2s $ease-out;
+}
+html.intro-lock .visual ~ * {
+	opacity: 0;
+	transform: translateY(80px);
+	pointer-events: none;
+}
+
+// 스크롤 안내 꺾쇠 (index.php .slg 안): 화면 맨 아래에서 36px, 가로 정가운데에 고정
+// 타이틀 ondoor.이 옆으로 가면 그 자리에서 투명해짐 (opacity는 js/visual.js가 매 프레임 넣음)
+// 인트로 동안은 숨겼다가 끝나면(html.intro-lock이 빠지면) 나타남
+.visual .scroll_arrow {
+	position: fixed;
+	bottom: 36px;
+	left: 50%;
+	translate: -50% 0;
+	pointer-events: none;
+	transition: opacity 0.6s;
+	@media (max-width: 768px) {
+		bottom: 16px;
+	}
+}
+html.intro-lock .visual .scroll_arrow {
+	opacity: 0 !important; // js 인라인 opacity보다 우선
+}
+
+// 인트로 화면 글자: 왼쪽 아래 안내 · 오른쪽 아래 깊이 수치 (js가 .intro_tunnel을 body에 넣었다가 끝나면 지움)
+.intro_tunnel {
+	@include side-var;
+	position: fixed;
+	inset: 0;
+	z-index: 60;
+	pointer-events: none;
+	color: #fff;
+
+	.cap {
+		position: absolute;
+		bottom: 40px;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		font-size: 12px;
+		line-height: 1;
+		font-weight: 100;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		font-variant-numeric: tabular-nums;
+		opacity: 0; // js가 0.3까지 서서히 보임
+
+		i {
+			width: 4px;
+			height: 4px;
+			background: #fff;
+		}
+		b {
+			font-weight: 100;
+		}
+	}
+	.cap_l {
+		left: var(--side);
+	}
+	.cap_r {
+		right: var(--side);
+	}
+}
+
+/* ---------- 카드 줄 섹션 공통 (서비스 · 프로젝트) ----------
+   .xxx_stage > .xxx_pin > .xxx_tit(h2) + .xxx_list > .xxx_itm
+   카드 영역이 화면에 고정되고, 캔버스 큰 제목이 .xxx_tit h2 자리로 오면 카드가 하나씩 올라온 뒤 스크롤에 따라 옆으로 흐름
+   (service.js가 .is-h, .xxx_stage 높이는 js가 계산) — js가 없으면 카드를 바로 보여 주고 가로 스크롤(스와이프)로 넘김 */
+@mixin rail($p) {
+	@include side-var;
+	position: relative;
+	z-index: 2;
+	padding-bottom: 200px;
+	color: #fff;
+
+	@media (max-width: 768px) {
+		padding-bottom: 120px;
+	}
+
+	.#{$p}_pin {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		min-height: 100vh;
+		min-height: 100svh;
+	}
+
+	.#{$p}_tit {
+		margin-bottom: 40px;
+		padding: 0 var(--side);
+
+		// 화면 글자는 캔버스가 그림: 가운데 큰 제목이 크기 그대로 이 h2 자리로 이동 (visual.js)
+		// → DOM 제목은 자리 기준 + SEO용으로만 남김. 글자 크기는 캔버스와 같게 (visual.js textSize 120px / 11.7vw / 480px 이하 13vw)
+		@at-root .has-sec-fx .#{$p} .#{$p}_tit h2 {
+			opacity: 0;
+		}
+
+		h2 {
+			margin: 0;
+			font-size: 120px;
+			line-height: 1;
+			font-weight: 900;
+			text-transform: uppercase;
+			white-space: nowrap;
+			color: #fff;
+
+			@media (max-width: 1024px) {
+				font-size: 11.7vw;
+			}
+			@media (max-width: 480px) {
+				font-size: 13vw;
+			}
+		}
+	}
+
+	// 카드 줄: 왼쪽 여백(--side, 1660px 초과 80px)에서 왼쪽 정렬
+	.#{$p}_list {
+		position: relative;
+		display: flex;
+		gap: 40px;
+		padding: 0 var(--side);
+		overflow-x: auto;
+		overscroll-behavior-x: none;
+		scrollbar-width: none;
+
+		&::-webkit-scrollbar {
+			display: none;
+		}
+	}
+
+	// 고정 + 가로 흐름
+	&.is-h {
+		.#{$p}_pin {
+			position: sticky;
+			top: 0;
+			height: 100vh;
+			height: 100svh;
+			overflow: hidden;
+		}
+		.#{$p}_list {
+			overflow: visible;
+		}
+	}
+}
+
+// 카드 크기: 높이는 서비스 · 프로젝트 같음 (화면 높이가 낮으면 화면에 들어오도록 줄어듦), 프로젝트는 너비 2배
+$card-h: min(480px, calc(100svh - 300px)); // 300px = 위 제목(120px) + 간격 + 위아래 여유
+$card-h-sm: min(336px, calc(100svh - 240px));
+
+/* ---------- 서비스 (What We Do) — 비주얼 두 번째 화면(What We Do 구간)과 겹침 ---------- */
+.service {
+	@include rail(service);
+	margin-top: -100vh;
+	margin-top: -100svh;
+
+	// 카드: 400/480 · r 8px · 배경 rgba(255,255,255,0.1)
+	// 화면 높이가 낮으면 카드 높이가 화면에 들어오도록 줄어듦
+	.service_itm {
+		position: relative;
+		flex: 0 0 auto;
+		display: flex;
+		flex-direction: column;
+		height: $card-h;
+		aspect-ratio: 400 / 480;
+		padding: 28px;
+		border-radius: 8px;
+		background: rgba(255, 255, 255, 0.1);
+		backdrop-filter: blur(8px);
+		overflow: hidden;
+		transition: background-color 0.4s;
+
+		// 카드 타이포 (아래 섹션도 같은 규칙): 라벨 14/24 · 100 / 제목 24/32 · 700 / 본문 16/24 · 400
+		.lbl {
+			font-size: 14px;
+			line-height: 1;
+			font-weight: 100;
+			text-transform: uppercase;
+			color: rgba(255, 255, 255, 0.5);
+		}
+		h3 {
+			margin: 16px 0 24px;
+			font-size: 24px;
+			line-height: 1;
+			font-weight: 700;
+			letter-spacing: -0.02em;
+			word-break: keep-all;
+		}
+		p {
+			margin: 0;
+			font-size: 16px;
+			line-height: 24px;
+			font-weight: 400;
+			color: rgba(255, 255, 255, 0.7);
+			word-break: keep-all;
+		}
+
+		// 3D 선 아이콘 (js가 data-shape에 맞춰 SVG를 그리고 계속 돌림): 오른쪽 아래
+		.fig {
+			position: absolute;
+			right: 16px;
+			bottom: 16px;
+			width: 46%;
+
+			svg {
+				display: block;
+				width: 100%;
+				height: auto;
+				opacity: 0;
+				transform: scale(0.7);
+				transition:
+					opacity 1s,
+					transform 1.4s $ease-out;
+			}
+		}
+		// 카드가 나타나고(.is-show) 화면에 보이면(.is-in) 아이콘이 커지며 나타남
+		&.is-show .fig.is-in svg {
+			opacity: 0.8;
+			transform: none;
+			transition-delay: 0.3s;
+		}
+
+		@media (hover: hover) {
+			&:hover {
+				background: rgba(255, 255, 255, 0.14);
+
+				.fig svg {
+					opacity: 1;
+				}
+			}
+		}
+
+		@media (max-width: 768px) {
+			height: $card-h-sm;
+			padding: 24px;
+
+			h3 {
+				// font-size: 20px;
+			}
+			.fig {
+				right: 8px;
+				bottom: 8px;
+			}
+		}
+	}
+
+	@media (max-width: 768px) {
+		.service_list {
+			gap: 20px;
+		}
+	}
+}
+
+/* ---------- 프로젝트 (Project) — 서비스 다음, 같은 방식 ---------- */
+.project {
+	@include rail(project);
+
+	// 카드: 서비스 카드와 높이 같고 너비 2배 (800/480) — 지금은 더미
+	.project_itm {
+		flex: 0 0 auto;
+		color: inherit; // 링크(<a>) 기본 색 · 밑줄 제거
+		text-decoration: none;
+		display: flex;
+		flex-direction: column;
+		gap: 20px;
+		height: $card-h;
+		aspect-ratio: 800 / 480;
+		padding: 28px;
+		border-radius: 8px;
+		background: rgba(255, 255, 255, 0.1);
+		overflow: hidden;
+		transition: background-color 0.4s;
+
+		// 썸네일 자리 (이미지 넣을 곳)
+		.thumb {
+			flex: 1;
+			border-radius: 4px;
+			background: rgba(255, 255, 255, 0.06);
+			background-size: cover;
+			background-position: center;
+		}
+		.info {
+			display: flex;
+			align-items: baseline;
+			justify-content: space-between;
+			gap: 16px;
+		}
+		.lbl {
+			order: 2;
+			font-size: 14px;
+			line-height: 1;
+			font-weight: 100;
+			text-transform: uppercase;
+			color: rgba(255, 255, 255, 0.5);
+			white-space: nowrap;
+		}
+		h3 {
+			margin: 0;
+			font-size: 24px;
+			line-height: 1;
+			font-weight: 700;
+			letter-spacing: -0.02em;
+		}
+
+		@media (hover: hover) {
+			&:hover {
+				background: rgba(255, 255, 255, 0.14);
+			}
+		}
+
+		@media (max-width: 768px) {
+			height: $card-h-sm;
+			padding: 24px;
+
+			h3 {
+				font-size: 20px;
+				line-height: 1;
+			}
+		}
+	}
+}
+
+/* ---------- We Are (강점) ----------
+   위쪽 한 화면(.weare_head)은 투명 → 흰색 그라데이션 (앞 섹션 위로 올라오며 검은 배경이 흰색으로 바뀜), 그 아래 흰 배경
+   제목 WE ARE: 그라데이션 아래쪽(왼쪽)에 자리 — js가 그 전까지 화면 가운데에 띄우고 흰색 → #222로 바꾸며 제자리로 옮김
+   왼쪽 반: 강점 제목 타이포 (화면에 고정) / 오른쪽 반: 설명 한 화면(100svh)씩 — 전환은 js/weare.js (.is-fx) */
+.weare {
+	@include side-var;
+	position: relative;
+	z-index: 3;
+	// 배경: 그라데이션은 맨 위 한 화면(.weare_head)에만, 나머지는 흰색 단색 (섹션 전체에 큰 그라데이션을 깔면 스크롤할 때 다시 그려서 버벅임)
+	color: #222; // 글자색 4단계: #222 제목 · #444 부제 · #666 본문 · #888 보조
+
+	overflow-x: clip; // 가로로 넘치는 것 잘라냄 (clip은 고정(sticky)을 막지 않음)
+
+	.weare_inner {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+
+		> * {
+			min-width: 0; // 긴 글자 · 데모가 칸을 밀어 넓히지 않게
+		}
+	}
+
+	// 왼쪽: 화면에 고정된 강점 제목
+	.weare_side {
+		position: sticky;
+		top: 0;
+		align-self: start; // 그리드 칸 높이로 늘어나면 고정이 안 됨
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		height: 100vh;
+		height: 100svh;
+		padding: 0 var(--side);
+	}
+	// 그라데이션 구간 (한 화면, 비어 있음)
+	.weare_head {
+		height: 100vh;
+		height: 100svh;
+		background: linear-gradient(to bottom, rgba(255, 255, 255, 0), #fff 70%); // 70%부터 흰색 (visual.js는 75% 지점부터 뒤 캔버스 그리기 멈춤)
+	}
+	// 그라데이션 아래는 흰색 (제목 고정 구간의 여백 포함)
+	.weare_intro,
+	.weare_inner {
+		background: #fff;
+	}
+	// 섹션 제목 구간: 화면이 흰색이 된 뒤 제목이 가운데에 2화면 동안 고정
+	// 글자 올라옴 → 투명해짐 → 세로선 내려옴은 모두 스크롤에 묶인 애니메이션(js/weare.js, scrub)
+	.weare_intro_pin {
+		position: relative; // 세로선(.weare_tit_line)의 기준
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		height: 100vh;
+		height: 100svh;
+		padding: 0 var(--side);
+	}
+	// 제목이 투명해진 뒤 위에서 아래로 내려오는 세로선 — 아래 weare_inner의 가운데 세로선(.weare_itm 왼쪽 테두리)과 같은 자리 · 색
+	// (길이는 js가 스크롤에 맞춰 scaleY 0 → 1)
+	.weare_tit_line {
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		left: 50%; // weare_inner 두 칸(1fr 1fr)의 경계 = 설명 칸 왼쪽 테두리 자리
+		width: 1px;
+		background: rgba(0, 0, 0, 0.05); // 설명 칸 테두리와 같은 색
+		transform: scaleY(0);
+		transform-origin: center top; // 위에서 아래로
+		pointer-events: none;
+
+		// 모바일은 한 줄 배치라 가운데 세로선이 없음
+		@media (max-width: 768px) {
+			display: none;
+		}
+	}
+	// 제목 화면을 3화면 동안 고정해 둘 자리 (PC만 — js가 .is-hold, 고정 여백 없이 고정하므로 높이로 자리를 만듦)
+	// 마지막 1화면 동안 아래 weare_inner가 고정된 제목 화면 위로 올라와 덮음 (높이 = js/weare.js의 end "+=300%"와 같게)
+	// 모바일은 고정하지 않음 (손가락 스크롤과 고정이 어긋나 흔들려서)
+	.weare_intro.is-hold {
+		height: 300vh;
+		height: 300svh;
+	}
+	.weare_inner {
+		position: relative;
+		z-index: 1; // 고정된 제목 화면보다 위로 올라와 덮음
+	}
+	// 제목: 다른 섹션 제목(What We Do)과 같은 크기 · 굵기
+	.weare_tit {
+		width: max-content;
+		max-width: 100%;
+		overflow: hidden; // 글자가 아래에서 올라오는 마스크
+		font-size: 120px;
+		line-height: 1;
+		font-weight: 900;
+		text-transform: uppercase;
+		white-space: nowrap;
+		color: #222;
+
+		@media (max-width: 1024px) {
+			font-size: 11.7vw;
+		}
+		@media (max-width: 480px) {
+			font-size: 13vw;
+		}
+		i {
+			display: inline-block;
+		}
+	}
+	// 타이포 규칙 (이 섹션 전체): 색 #222 제목 · #444 부제 · #666 본문 · #888 보조 / 굵기 700 · 500 · 400 / 간격 · 줄높이 8px 배수
+	.weare_words {
+		display: grid;
+		margin: 0;
+		padding: 0;
+
+		li {
+			display: flex;
+			flex-direction: column;
+			gap: 24px;
+		}
+		// 영문 큰 제목
+		b {
+			display: block;
+			// 큰 글자는 글자 앞 여백(사이드 베어링)이 커서 WE ARE보다 안쪽으로 들어가 보임 → 왼쪽으로 당겨 맞춤
+			// (text-indent는 아래 마스크(overflow)에 첫 글자가 잘려서 margin으로 당김)
+			margin-left: -0.045em;
+			overflow: hidden; // 글자가 위아래로 빠지는 마스크
+			font-size: clamp(64px, 8.4vw, 120px);
+			line-height: 1;
+			font-weight: 900;
+			text-transform: uppercase;
+			white-space: nowrap;
+		}
+		// 한글 작은 제목
+		span {
+			display: block;
+			overflow: hidden;
+			font-size: 24px;
+			line-height: 1;
+			font-weight: 500;
+			color: #444;
+		}
+		i {
+			display: inline-block;
+		}
+	}
+	.weare_count {
+		margin: 40px 0 0;
+		font-size: 14px;
+		line-height: 1;
+		font-weight: 100;
+		font-variant-numeric: tabular-nums;
+		color: #888;
+
+		b {
+			font-weight: 700;
+			color: #222;
+		}
+	}
+	// js 없을 때: 제목을 차례로 나열 / 번호는 숨김
+	&:not(.is-fx) {
+		.weare_words {
+			gap: 24px;
+		}
+		.weare_count {
+			display: none;
+		}
+	}
+	// js 있을 때: 제목들을 한 칸에 겹침 (현재 강점만 글자가 올라와 보임)
+	&.is-fx .weare_words li {
+		grid-area: 1 / 1;
+	}
+
+	// 고정 모드 (js가 .is-pin + 설명 내용을 .weare_body로 감쌈)
+	// 설명 한 칸 = 160svh, 내용은 화면 한가득 상자로 60svh 동안 고정 — 왼쪽 제목 → (0.25화면 뒤) 오른쪽 내용 → 지나감
+	&.is-pin {
+		.weare_itm {
+			display: block;
+			min-height: 160vh;
+			min-height: 160svh;
+			padding: 0;
+
+			// 마지막 칸(상담 문의): 폼이 화면에 고정된 채 0.5화면 더 머문 뒤 푸터로 (내용은 고정돼 있어 빈 공간은 안 생김)
+			&:last-child {
+				min-height: 150vh;
+				min-height: 150svh;
+			}
+		}
+		.weare_body {
+			position: sticky;
+			top: 0;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			min-height: 100vh;
+			min-height: 100svh;
+			padding: 80px var(--side) 80px 80px;
+
+			@media (max-width: 1024px) {
+				padding-left: 40px;
+			}
+		}
+		// 모바일: 고정 없이 차례로 (위에 제목이 고정돼 있어서)
+		@media (max-width: 768px) {
+			.weare_itm {
+				min-height: 0;
+			}
+			.weare_body {
+				position: static;
+				min-height: 0;
+				padding: 64px var(--side);
+			}
+		}
+	}
+
+	// 오른쪽: 설명 한 화면씩
+	.weare_itm {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		min-height: 100vh;
+		min-height: 100svh;
+		padding: 80px var(--side) 80px 0;
+		border-left: 1px solid rgba(0, 0, 0, 0.05);
+		padding-left: 80px;
+
+		.num {
+			font-size: 14px;
+			line-height: 1;
+			font-weight: 100;
+			letter-spacing: 0.08em;
+			color: #888;
+		}
+		h3 {
+			margin: 16px 0 24px;
+			font-size: 40px;
+			line-height: 48px;
+			font-weight: 700;
+			letter-spacing: -0.02em;
+			color: #222;
+			word-break: keep-all;
+		}
+		p {
+			margin: 0;
+			font-size: 16px;
+			line-height: 24px;
+			font-weight: 400;
+			color: #666;
+			word-break: keep-all;
+		}
+	}
+
+	// 데모 공통 (js/weare.js가 안을 채움)
+	.weare_demo {
+		width: 100%;
+		max-width: 560px;
+		margin-top: 48px;
+		contain: layout; // 데모 안 애니메이션(줄높이 · 글자 크기 변화)이 페이지 전체 레이아웃을 다시 계산하지 않게
+
+		&:empty {
+			display: none;
+		}
+		.demo_bar {
+			display: flex;
+			justify-content: space-between;
+			gap: 16px;
+			margin-bottom: 24px;
+			font-size: 14px;
+			line-height: 1;
+			color: #888;
+
+			code {
+				font-family: "Paperlogy", sans-serif;
+				font-size: 14px;
+				color: #444;
+
+				b {
+					color: #222;
+				}
+			}
+		}
+	}
+
+	// 데모 lh: 줄 상자(점선) · 줄 사이 보이는 간격(오른쪽 표시)
+	.lh_stage {
+		position: relative;
+		padding: 24px 96px 24px 24px;
+		border-radius: 8px;
+		background: rgba(34, 34, 34, 0.04); // #222 4%
+	}
+	.lh_row {
+		position: relative;
+		font-size: 28px; // js가 이 크기를 읽어 간격 계산
+		color: #222;
+		white-space: nowrap;
+		outline: 1px dashed #888;
+
+		small {
+			position: absolute;
+			top: 50%;
+			right: 8px; // 폰트 이름 (줄 높이에 영향 없게 띄워 둠)
+			transform: translateY(-50%);
+			font-family: "Paperlogy", sans-serif;
+			font-size: 12px;
+			line-height: 1;
+			color: #888;
+		}
+	}
+	.lh_mark {
+		position: absolute;
+		right: 24px;
+		width: 56px;
+		border-left: 1px solid #444;
+
+		// 위아래 끝 가로선
+		&::before,
+		&::after {
+			content: "";
+			position: absolute;
+			left: -4px;
+			width: 7px;
+			height: 1px;
+			background: #444;
+		}
+		&::before {
+			top: 0;
+		}
+		&::after {
+			bottom: 0;
+		}
+		em {
+			position: absolute;
+			top: 50%;
+			left: 8px;
+			transform: translateY(-50%);
+			font-size: 14px;
+			font-weight: 700;
+			color: #666;
+			transition: color 0.3s;
+		}
+		&.is-even em {
+			color: #222; // margin과 같아진 간격
+		}
+	}
+
+	// 데모 seo: 코드 → 검색 결과 미리보기
+	.seo_code {
+		margin: 0 0 16px;
+		padding: 20px 24px;
+		border-radius: 8px;
+		background: rgba(34, 34, 34, 0.04); // #222 4%
+		font-family: "Paperlogy", sans-serif;
+		font-size: 12px;
+		line-height: 22px;
+		color: #444;
+		overflow: hidden;
+
+		code {
+			font: inherit;
+		}
+		.ln {
+			display: block;
+			white-space: pre;
+			overflow: hidden;
+			text-overflow: ellipsis;
+
+			&.is-on {
+				background: rgba(34, 34, 34, 0.06); // 지금 입력 중인 줄
+			}
+		}
+		.t {
+			color: #222;
+			font-weight: 700;
+		}
+		.a {
+			color: #666;
+		}
+		.s {
+			color: #888;
+		}
+	}
+	.seo_prev {
+		position: relative;
+		padding: 20px 24px;
+		border: 1px solid rgba(34, 34, 34, 0.1);
+		border-radius: 8px;
+		transition: border-color 0.4s;
+
+		.seo_site {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			font-size: 12px;
+			line-height: 1;
+			color: #888;
+
+			i {
+				width: 16px;
+				height: 16px;
+				border-radius: 50%;
+				background: rgba(34, 34, 34, 0.16);
+			}
+		}
+		.seo_body {
+			display: flex;
+			gap: 16px;
+			margin-top: 12px;
+		}
+		.seo_txt {
+			flex: 1;
+			min-width: 0;
+		}
+		p {
+			margin: 0;
+		}
+		.seo_title {
+			font-size: 18px;
+			line-height: 1;
+			font-weight: 700;
+			color: #888;
+			transition: color 0.4s;
+		}
+		.seo_desc {
+			margin-top: 4px;
+			font-size: 14px;
+			line-height: 20px;
+			color: #888;
+		}
+		// 아직 없는 정보: 숨김 → 코드가 들어오면 나타남
+		.seo_rate,
+		.seo_thumb {
+			opacity: 0;
+			transform: translateY(8px);
+			transition:
+				opacity 0.5s,
+				transform 0.5s $ease-out;
+		}
+		.seo_rate {
+			margin-top: 8px;
+			font-size: 12px;
+			line-height: 1;
+			color: #444;
+			letter-spacing: 0.04em;
+
+			b {
+				color: #222;
+			}
+		}
+		.seo_thumb {
+			flex: 0 0 auto;
+			width: 72px;
+			height: 72px;
+			border-radius: 6px;
+			background: linear-gradient(135deg, #444, #888);
+		}
+		// 연결된 마케팅 도구: 꺼짐(테두리) → 코드가 들어오면 켜짐(검정)
+		.seo_tools {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 8px;
+			margin: 16px 0 0;
+			padding: 16px 0 0;
+			border-top: 1px solid rgba(34, 34, 34, 0.1);
+
+			li {
+				padding: 4px 12px;
+				border: 1px solid rgba(34, 34, 34, 0.16);
+				border-radius: 999px;
+				font-size: 12px;
+				line-height: 1;
+				color: #888;
+				transition:
+					background-color 0.4s,
+					border-color 0.4s,
+					color 0.4s;
+
+				// 연결 표시 점
+				&::before {
+					content: "";
+					display: inline-block;
+					width: 6px;
+					height: 6px;
+					margin-right: 6px;
+					border-radius: 50%;
+					background: currentColor;
+					vertical-align: 1px;
+					opacity: 0.5;
+				}
+				b {
+					font-weight: 700;
+					font-variant-numeric: tabular-nums;
+				}
+				&.is-on {
+					border-color: #222;
+					background: #222;
+					color: #fff;
+
+					&::before {
+						opacity: 1;
+					}
+				}
+			}
+		}
+		&.has-title .seo_title {
+			color: #222;
+		}
+		&.has-desc .seo_desc {
+			color: #666;
+		}
+		&.has-rate .seo_rate,
+		&.has-thumb .seo_thumb {
+			opacity: 1;
+			transform: none;
+		}
+	}
+
+	// 데모 cmp: BEFORE(규칙 없음) vs AFTER(정돈된 디자인) — 크게 보이도록 데모 폭을 넓힘
+	// 기본값 = 규칙 없는 상태, .is-good.s-* 가 차례로 적용되는 규칙 (컬러 → 굵기 · 크기 → 모서리 → 간격)
+	.weare_demo[data-demo="cmp"] {
+		max-width: 720px;
+	}
+	.cmp_wrap {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 24px;
+	}
+	.cmp_col {
+		> em {
+			display: block;
+			margin-bottom: 16px;
+			font-size: 14px;
+			line-height: 1;
+			font-weight: 500;
+			letter-spacing: 0.08em;
+			text-transform: uppercase;
+			color: #444;
+		}
+	}
+	.cmp_card {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		padding: 19px 27px 23px 15px;
+		border: 1px solid #000;
+		border-radius: 20px;
+		background: #fff;
+		transition:
+			padding 0.4s $ease-out,
+			border-color 0.3s,
+			border-radius 0.3s;
+
+		> * {
+			color: #000;
+			transition:
+				color 0.3s,
+				font-size 0.4s $ease-out,
+				line-height 0.4s $ease-out,
+				margin 0.4s $ease-out,
+				border-radius 0.3s,
+				background-color 0.3s;
+		}
+		// 규칙 없음: 제각각 크기 · 간격 · 모서리, 글자는 전부 볼드(700), 색은 전부 #000
+		.c_thumb {
+			align-self: stretch;
+			height: 104px;
+			margin: 0 9px 15px 0;
+			border-radius: 0;
+			background: #000;
+		}
+		.c_meta {
+			margin: 0 0 5px 7px;
+			font-size: 13px;
+			line-height: 18px;
+			font-weight: 700;
+		}
+		.c_h {
+			margin: 0 0 13px;
+			font-size: 21px;
+			line-height: 30px;
+			font-weight: 700;
+		}
+		.c_sub {
+			margin: 0 0 17px 5px;
+			font-size: 17px;
+			line-height: 25px;
+			font-weight: 700;
+		}
+		.c_p {
+			margin: 0 0 11px;
+			font-size: 15px;
+			line-height: 23px;
+			font-weight: 700;
+		}
+		.c_btn {
+			margin: 0 0 0 13px;
+			padding: 6px 14px;
+			border-radius: 3px;
+			background: #000;
+			font-size: 13px;
+			line-height: 20px;
+			font-weight: 700;
+			color: #fff;
+		}
+	}
+	// 규칙 1. 컬러: #000 → 4단계 회색
+	.is-good.s-color .cmp_card {
+		border-color: rgba(34, 34, 34, 0.1);
+
+		.c_thumb {
+			background: rgba(34, 34, 34, 0.08);
+		}
+		.c_meta {
+			color: #888;
+		}
+		.c_h {
+			color: #222;
+		}
+		.c_sub {
+			color: #444;
+		}
+		.c_p {
+			color: #666;
+		}
+		.c_btn {
+			background: #444;
+			color: #fff;
+		}
+	}
+	// 규칙 2. 굵기 700 · 500 · 400 + 크기 · 줄높이 8px 배수
+	.is-good.s-weight .cmp_card {
+		.c_meta {
+			font-size: 12px;
+			line-height: 1;
+			font-weight: 500;
+		}
+		.c_h {
+			font-size: 20px;
+			line-height: 1;
+			font-weight: 700;
+		}
+		.c_sub {
+			font-size: 16px;
+			line-height: 1;
+			font-weight: 500;
+		}
+		.c_p {
+			font-size: 14px;
+			line-height: 24px;
+			font-weight: 400;
+		}
+		.c_btn {
+			font-size: 14px;
+			line-height: 1;
+			font-weight: 700;
+		}
+	}
+	// 규칙 3. 모서리: 카드 8px, 안쪽 요소 4px
+	.is-good.s-radius .cmp_card {
+		border-radius: 8px;
+
+		.c_thumb,
+		.c_btn {
+			border-radius: 4px;
+		}
+	}
+	// 규칙 4. 간격: 8px 배수 (안쪽 여백 24, 사이 24 · 8 · 8 · 16 · 24)
+	.is-good.s-space .cmp_card {
+		padding: 24px;
+
+		.c_thumb {
+			margin: 0 0 24px;
+		}
+		.c_meta {
+			margin: 0 0 8px;
+		}
+		.c_h {
+			margin: 0 0 8px;
+		}
+		.c_sub {
+			margin: 0 0 16px;
+		}
+		.c_p {
+			margin: 0 0 24px;
+		}
+		.c_btn {
+			margin: 0;
+			padding: 8px 16px;
+		}
+	}
+
+	// 데모 motion: 왼쪽 GSAP 이징 · 오른쪽 WebGL 3D
+	.weare_demo[data-demo="motion"] {
+		max-width: 720px;
+	}
+	.mo_wrap {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 24px;
+	}
+	.mo_col {
+		display: grid;
+		grid-template-rows: auto auto; // 라벨 · 화면 (화면은 정사각형이라 두 칸 높이가 같음)
+		gap: 16px;
+		min-width: 0;
+
+		> em {
+			font-size: 14px;
+			line-height: 1;
+			font-weight: 500;
+			letter-spacing: 0.08em;
+			text-transform: uppercase;
+			color: #444;
+		}
+	}
+	.mo_view {
+		position: relative;
+		aspect-ratio: 1 / 1;
+		border-radius: 8px;
+		background: rgba(34, 34, 34, 0.04); // #222 4%
+		overflow: hidden;
+	}
+	// GSAP 칸: 위 글자 모션(굵은 두 줄 위에 외곽선 글자 겹침) / 아래 카드 겹침 모션
+	.mo_type {
+		display: grid;
+		grid-template-rows: auto 1fr;
+		gap: 16px;
+		padding: 24px;
+		container-type: inline-size; // 글자 · 카드 크기를 칸 너비에 맞춤 (cqw)
+
+		i {
+			display: inline-block;
+		}
+	}
+	.mo_txt {
+		position: relative;
+	}
+	.mo_t1 {
+		font-size: 13cqw;
+		line-height: 1;
+		font-weight: 900;
+		letter-spacing: -0.02em;
+		color: #222;
+
+		span {
+			display: block;
+			overflow: hidden; // 줄마다 마스크
+			white-space: nowrap;
+		}
+	}
+	.mo_t2 {
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: 50%;
+		transform: translateY(-50%) rotate(-8deg);
+		font-family: "Courier New", monospace; // 스크램블 중 글자 폭이 흔들리지 않게 고정폭
+		font-size: 8cqw;
+		line-height: 1;
+		font-weight: 700;
+		text-align: center;
+		white-space: nowrap;
+		color: transparent;
+		-webkit-text-stroke: 1px #888;
+		mix-blend-mode: multiply;
+
+		i {
+			min-width: 0.6em; // 스크램블 중에도 글자 폭 고정
+		}
+	}
+	// 카드 겹침: 카드 4장(색 4단계)이 가운데 기준으로 겹쳤다 펼쳐짐 — 위치 · 각도는 js
+	.mo_cards {
+		position: relative;
+		min-height: 0;
+	}
+	.mo_card {
+		position: absolute;
+		left: 50%;
+		top: 50%;
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-end;
+		gap: 4px;
+		width: 30cqw;
+		aspect-ratio: 4 / 3;
+		padding: 2.4cqw;
+		border-radius: 8px;
+		box-shadow: 0 8px 24px rgba(34, 34, 34, 0.16);
+
+		&:nth-child(1) {
+			background: #888;
+		}
+		&:nth-child(2) {
+			background: #666;
+		}
+		&:nth-child(3) {
+			background: #444;
+		}
+		&:nth-child(4) {
+			background: #222;
+		}
+		// 카드 안 글자 자리 (흰 줄)
+		b {
+			display: block;
+			width: 64%;
+			height: 3px;
+			border-radius: 2px;
+			background: rgba(255, 255, 255, 0.72);
+
+			& + b {
+				width: 40%;
+				opacity: 0.6;
+			}
+		}
+	}
+	// WebGL 캔버스
+	.mo_gl .mo_view {
+		padding: 0;
+		cursor: pointer;
+
+		canvas {
+			display: block;
+			width: 100%;
+			height: 100%;
+			border-radius: inherit;
+		}
+	}
+
+	// 데모 grid: 12칸 그리드 위 와이어프레임 페이지 + 같은 버튼 컴포넌트
+	.grid_stage {
+		position: relative;
+		padding: 16px;
+		border-radius: 8px;
+		background: rgba(34, 34, 34, 0.04); // #222 4%
+	}
+	// 12칸 (세로로 자라며 나타남)
+	.grid_cols {
+		position: absolute;
+		inset: 16px;
+		display: grid;
+		grid-template-columns: repeat(12, 1fr);
+		gap: 8px;
+		pointer-events: none;
+
+		i {
+			background: rgba(34, 34, 34, 0.08);
+			transform-origin: 50% 0;
+		}
+	}
+	.grid_page {
+		position: relative;
+		display: grid;
+		grid-template-columns: repeat(12, 1fr);
+		gap: 8px;
+	}
+	.g_blk {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		padding: 12px;
+		border-radius: 8px;
+		background: #fff;
+		box-shadow: 0 0 0 1px rgba(34, 34, 34, 0.08);
+	}
+	.g_hd {
+		grid-column: span 12;
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+		padding: 8px 12px;
+	}
+	.g_logo {
+		width: 48px;
+		height: 8px;
+		border-radius: 4px;
+		background: #222;
+	}
+	.g_hero {
+		grid-column: span 7;
+		justify-content: center;
+		min-height: 104px;
+	}
+	// 오른쪽 이미지 칸: 다른 블록처럼 흰 카드 + 안을 이미지 자리(회색)로 가득 (반투명이면 뒤 12칸 세로 줄이 비쳐 빈 칸처럼 보임)
+	.g_side {
+		grid-column: span 5;
+
+		.g_img {
+			flex: 1 1 auto;
+			height: auto;
+		}
+	}
+	.g_card {
+		grid-column: span 4;
+	}
+	.g_img {
+		height: 40px;
+		border-radius: 4px;
+		background: rgba(34, 34, 34, 0.08); // #222 8%
+	}
+	// 글자 대신 회색 줄 (굵기 · 길이로 위계)
+	// 글자 대신 줄: 색으로 위계 — 제목 #222 · 부제 #444 · 본문 #666 · 보조 #888
+	.g_ln {
+		width: 80%;
+		height: 6px;
+		border-radius: 3px;
+		background: #666;
+
+		&.is-s {
+			width: 56%;
+			background: #888;
+		}
+		&.is-l {
+			height: 10px;
+			background: #222;
+		}
+		&.is-l.is-s {
+			background: #444;
+		}
+	}
+	// 같은 버튼 컴포넌트 (어디에 있든 크기 · 색 · 모서리 동일)
+	.g_btn {
+		align-self: flex-start;
+		padding: 4px 12px;
+		border-radius: 4px;
+		background: #222;
+		font-size: 10px;
+		line-height: 1;
+		font-weight: 700;
+		color: #fff;
+		box-shadow: 0 0 0 0 rgba(34, 34, 34, 0);
+		transition: box-shadow 0.5s;
+	}
+	.g_hd .g_btn {
+		align-self: center;
+	}
+	.g_note {
+		opacity: 0;
+		transition: opacity 0.4s;
+	}
+	// 같은 컴포넌트 강조: 버튼마다 같은 테두리 고리 + 위 문구
+	.is-same .g_btn {
+		box-shadow:
+			0 0 0 3px #fff,
+			0 0 0 4px #222;
+	}
+	.is-same .g_note {
+		opacity: 1;
+		color: #222;
+	}
+
+	@media (max-width: 1024px) {
+		.weare_itm {
+			padding-left: 40px;
+
+			h3 {
+				font-size: 32px;
+				line-height: 40px;
+			}
+		}
+	}
+	// 상담 문의: 왼쪽 큰 제목(CONTACT)은 다른 제목과 같은 크기, 번호(01 / 05)는 숨김
+	.weare_count {
+		transition: opacity 0.4s;
+
+		&.is-hide {
+			opacity: 0;
+		}
+	}
+
+	// 상담 폼 (latest 스킨 theme/basic/skin/latest/contact) — 모양은 _contact_form.scss (오른쪽 아래 문의칸과 같이 씀)
+	.contact_form {
+		margin-top: 16px; // 제목(h3) 아래 여백 24px + 16px
+		@include contact-form;
+	}
+	.weare_itm .cf_none {
+		margin-top: 32px;
+		color: #d64545;
+	}
+
+	// 설명 칸마다 붙는 큰 제목 (js가 넣음) — PC에선 왼쪽 고정 영역이 대신하므로 숨김
+	.weare_mword {
+		display: none;
+	}
+	// 모바일: 고정(sticky) 없이 자연스럽게 — 왼쪽 고정 영역을 숨기고, 설명 칸마다 맨 위에 큰 제목 → 설명이 차례로 흐름
+	@media (max-width: 768px) {
+		.weare_inner {
+			grid-template-columns: 1fr;
+		}
+		.weare_side {
+			display: none;
+		}
+		.weare_itm .weare_mword {
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
+			margin: 0 0 40px; // 큰 제목 ~ 번호 사이 (.weare_itm p의 margin: 0보다 우선하도록 선택자를 길게)
+
+			b {
+				margin-left: -0.045em; // 큰 글자 앞 여백만큼 당겨 줄 맞춤
+				font-size: 15vw;
+				line-height: 1;
+				font-weight: 900;
+				text-transform: uppercase;
+				white-space: nowrap;
+				color: #222;
+			}
+			span {
+				font-size: 18px;
+				line-height: 1;
+				font-weight: 500;
+				color: #444;
+			}
+		}
+		.weare_itm {
+			min-height: 0;
+			padding: 64px var(--side);
+			border-left: 0;
+			border-top: 1px solid rgba(0, 0, 0, 0.05);
+
+			h3 {
+				font-size: 24px;
+				line-height: 1;
+			}
+			p {
+				font-size: 16px;
+				line-height: 24px;
+			}
+		}
+		.weare_demo {
+			margin-top: 32px;
+		}
+		.weare_demo[data-demo="cmp"] .cmp_wrap,
+		.mo_wrap {
+			grid-template-columns: 1fr; // 모바일: 비교 · 모션 데모는 위아래로
+		}
+		// line-height 데모: 좁은 화면에서 오른쪽 간격 표시 자리 줄임
+		.lh_stage {
+			padding: 16px 72px 16px 16px;
+			overflow: hidden;
+		}
+		.lh_mark {
+			right: 12px;
+		}
+		.lh_row {
+			font-size: 22px;
+		}
+		.lh_row small {
+			display: none;
+		}
+		// 상담 문의 칸: 모바일은 한 화면 높이 (이미 .weare 안이라 &로 이어 붙임 — ".weare.is-pin"으로 쓰면 ".weare .weare.is-pin"이 돼서 적용 안 됨)
+		// .weare_itm까지 써서 PC용 ".is-pin .weare_itm:last-child { 150svh }"보다 우선순위가 높게
+		&.is-pin .weare_itm.weare_contact {
+			min-height: 100vh;
+			min-height: 100svh;
+		}
+	}
+}
+
+/* ---------- 480px 이하: We Are 설명 · 브랜드 설명의 강제 줄바꿈(<br>) 없이 자연스럽게 ---------- */
+@media (max-width: 480px) {
+	.weare .weare_itm p br,
+	.visual .brand p br {
+		display: none;
+	}
+}
+
+/* ---------- 400px 이하: 모든 글자 크기 -2px (화면 너비(vw)로 정한 큰 제목은 제외) ---------- */
+@media (max-width: 400px) {
+	.intro_tunnel .cap {
+		font-size: 10px;
+	}
+	.visual .brand p {
+		font-size: 16px;
+	}
+	.service .service_itm {
+		.lbl {
+			font-size: 12px;
+		}
+		h3 {
+			font-size: 22px;
+		}
+		p {
+			font-size: 14px;
+		}
+	}
+	.project .project_itm {
+		.lbl {
+			font-size: 12px;
+		}
+		h3 {
+			font-size: 18px;
+		}
+	}
+	.weare {
+		.weare_itm .weare_mword span {
+			font-size: 16px;
+		}
+		.weare_itm {
+			.num {
+				font-size: 12px;
+			}
+			h3 {
+				font-size: 22px;
+			}
+			p {
+				font-size: 14px;
+			}
+		}
+		.weare_demo .demo_bar {
+			font-size: 12px;
+
+			code {
+				font-size: 12px;
+			}
+		}
+		.lh_row {
+			font-size: 20px; // js가 이 크기를 읽어 간격 계산
+		}
+		.lh_mark em {
+			font-size: 12px;
+		}
+		.seo_code {
+			font-size: 10px;
+		}
+		.seo_prev {
+			.seo_site,
+			.seo_rate,
+			.seo_tools li {
+				font-size: 10px;
+			}
+			.seo_title {
+				font-size: 16px;
+			}
+			.seo_desc {
+				font-size: 12px;
+			}
+		}
+		.cmp_col > em,
+		.mo_col > em {
+			font-size: 12px;
+		}
+		.cmp_card {
+			.c_meta {
+				font-size: 11px;
+			}
+			.c_h {
+				font-size: 19px;
+			}
+			.c_sub {
+				font-size: 15px;
+			}
+			.c_p {
+				font-size: 13px;
+			}
+			.c_btn {
+				font-size: 11px;
+			}
+		}
+		.is-good.s-weight .cmp_card {
+			.c_meta {
+				font-size: 10px;
+			}
+			.c_h {
+				font-size: 18px;
+			}
+			.c_sub {
+				font-size: 14px;
+			}
+			.c_p {
+				font-size: 12px;
+			}
+			.c_btn {
+				font-size: 12px;
+			}
+		}
+		.g_btn {
+			font-size: 8px;
+		}
+	}
+}
+
+/* 정책 팝업 · 푸터 스타일은 모든 페이지 공통이라 scss/layout.scss에 있음 (tail.php에서 layout.min.css로 불러옴) */

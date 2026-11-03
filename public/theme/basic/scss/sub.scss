@@ -1,0 +1,989 @@
+/* sub.scss — 회사소개 (page/ondoor.php에서 scss/sub.min.css로 불러옴, 동작은 js/sub.js)
+   디자인 규칙(_vars.scss와 같음): 흑백 — 검정 #000 · 카드 #151515 · 회색 #f4f4f4 / 글자색 4단계 #222 제목 · #444 부제 · #666 본문 · #888 보조
+   굵기 900(큰 제목) · 700 · 500 · 400 · 100(라벨) / 간격 · 여러 줄 줄높이 8px 배수 / 글자 크기 짝수 / r 8px (24px 이하 작은 표식만 4px)
+   한 줄로 끝나는 글자는 line-height: 1 / 이징 cubic-bezier(0.22, 1, 0.36, 1)
+
+   이 파일은 변수 · 중첩 · mixin 없이 평범한 CSS 문법으로 씀 — 그대로 sub.min.css로 복사해도 되고, Live Sass로 컴파일해도 결과가 같음
+   스크롤 연출 배치(고정 장면)는 js가 켜졌을 때만: .ab.is-fx — 그 밖에는(동작 줄이기 · 스크립트 실패) 같은 내용이 보통 배치로 보임 */
+
+/* js가 준비될 때까지 움직일 글자 · 카드를 숨김 (page/ondoor.php 인라인 스크립트가 html.sub-wait, js/sub.js가 해제) */
+html.sub-wait .ab [data-split],
+html.sub-wait .ab [data-rise],
+html.sub-wait .ab .ab_statement,
+html.sub-wait .ab .ab_work {
+	visibility: hidden;
+}
+
+/* ---------- 공통 ---------- */
+.ab {
+	--side: 80px; /* 양옆 여백: 80 → 40(1660px 이하) → 20(768px 이하) */
+	--ease: cubic-bezier(0.22, 1, 0.36, 1);
+	color: #222;
+}
+@media (max-width: 1660px) {
+	.ab {
+		--side: 40px;
+	}
+}
+@media (max-width: 768px) {
+	.ab {
+		--side: 20px;
+	}
+}
+
+/* 글자 나누기 (js/sub.js) — 단어 .w(줄바꿈 때 안 끊김) > 글자 .ch(마스크) > i(아래에서 올라오는 글자) */
+.ab .w {
+	display: inline-block;
+	white-space: nowrap;
+}
+.ab .ch {
+	display: inline-block;
+	overflow: hidden;
+	padding: 0.08em 0; /* 마스크가 글자 아래 · 위를 자르지 않게 */
+	margin: -0.08em 0;
+	vertical-align: top;
+}
+.ab .ch > i {
+	display: inline-block;
+	font-style: normal;
+}
+
+/* 줄바꿈: 단어 중간에서 끊지 않고(keep-all), 여러 줄이면 줄 길이를 고르게(balance — 마지막 줄에 한 단어만 남지 않게)
+   1024 · 768 · 480px에서 카드 설명 · 흐름도 · 역할 목록 끝 단어("설계합니다." 등)가 혼자 떨어지던 것 정리 (balance를 모르는 브라우저는 보통 줄바꿈) */
+.ab_statement,
+.ab_works_tit,
+.ab_work p,
+.ab_flow_box span,
+.ab_role_lead,
+.ab_role_list li {
+	word-break: keep-all;
+	text-wrap: balance;
+}
+
+/* 작은 영문 라벨 */
+.ab_lbl {
+	font-size: 14px;
+	line-height: 1;
+	font-weight: 100;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: #888;
+}
+
+/* 3D 선 아이콘 (메인 서비스 카드와 같은 도형, js/sub.js가 SVG로 그림) — 화면에 보이면(.is-in) 커지며 나타남 */
+.ab .fig {
+	position: absolute;
+	right: 16px;
+	bottom: 16px;
+	width: 136px;
+	pointer-events: none;
+}
+.ab .fig svg {
+	display: block;
+	width: 100%;
+	height: auto;
+	opacity: 0;
+	transform: scale(0.7);
+	transition:
+		opacity 1s,
+		transform 1.4s var(--ease);
+}
+.ab .fig.is-in svg {
+	opacity: 0.8;
+	transform: none;
+	transition-delay: 0.3s;
+}
+
+/* ---------- 검정 구간(첫 화면 · 서비스 카드 · 그라데이션) + 뒤에 고정된 유리 도형 ----------
+   메인과 같은 구조: 유리 도형 캔버스(js/visual.js 배경 전용)가 화면에 고정돼 있고, 섹션들은 투명 배경으로 그 위를 지나감
+   → 마지막 그라데이션(투명 → 흰색)이 도형을 서서히 덮으며 흰 구간으로 넘어감 (메인 서비스 → We Are와 같음)
+   캔버스는 이 구간 안에서만 고정(sticky) — 아래 흰 구간 · 푸터 위로는 안 나옴. WebGL이 안 되면 검정 바탕 */
+.ab_dark {
+	position: relative;
+	isolation: isolate;
+	background: #000;
+}
+.ab_glass_wrap {
+	position: absolute;
+	inset: 0;
+	bottom: -100vh; /* 검정 구간보다 한 화면 더 — 그라데이션 · 흰 구간이 다 덮을 때까지 도형이 제자리에 고정(메인처럼 같이 올라가지 않음) */
+	bottom: -100svh;
+	z-index: -1; /* 섹션 내용 뒤 */
+	pointer-events: none;
+}
+.ab_glass {
+	position: sticky;
+	top: 0;
+	height: 100vh;
+	height: 100svh;
+}
+/* 문장 뒤 어두운 막: 도형(캔버스) 위에 덮음 — 첫 화면 소개 문장 · 서비스 문장이 같이 씀 (js/sub.js가 스크롤에 따라 0 ↔ 0.7) */
+.ab_glass_dim {
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+	background: #000;
+	opacity: 0;
+}
+
+/* ---------- ① 첫 화면 + 소개 문장 ----------
+   가운데 큰 영문 제목(js/visual.js가 캔버스에 그림)
+   연출(.is-fx): 화면에 고정된 채 스크롤 → 제목이 제자리에서 위로 빠지고, 어두운 막(.ab_glass_dim)이 짙어지며 가운데 소개 문장이 단어마다 밝아짐 */
+.ab_intro {
+	position: relative;
+	color: #fff;
+}
+.ab_intro_stage {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	gap: 96px;
+	min-height: 100vh;
+	min-height: 100svh;
+	padding: 160px var(--side) 120px;
+	overflow: hidden;
+	isolation: isolate;
+}
+.ab_hero {
+	text-align: center;
+}
+/* 제목: js/visual.js가 캔버스에 그리므로 DOM 글자는 투명(자리 · 검색용) — WebGL이 안 되면(body.is-no-webgl) 그대로 보임 */
+.ab_hero_tit {
+	font-size: 144px;
+	line-height: 1;
+	font-weight: 900;
+	letter-spacing: -0.02em;
+	text-transform: uppercase;
+	opacity: 0;
+}
+.is-no-webgl .ab_hero_tit {
+	opacity: 1;
+}
+.ab_scroll {
+	display: none;
+}
+.ab_statement {
+	max-width: 960px;
+	font-size: 56px; /* 서비스 문장(.ab_works_tit)과 같은 크기 · 줄높이 (반응형 단계도 같음) */
+	line-height: 72px;
+	font-weight: 700;
+	letter-spacing: -0.02em;
+	word-break: keep-all;
+	color: #fff;
+}
+@media (max-width: 1280px) {
+	.ab_hero_tit {
+		font-size: 120px;
+	}
+	.ab_statement {
+		font-size: 48px;
+		line-height: 64px;
+	}
+}
+@media (max-width: 1024px) {
+	.ab_hero_tit {
+		font-size: 96px;
+	}
+	.ab_statement {
+		font-size: min(40px, 4.4vw); /* 900px 아래에선 화면 폭에 맞춰 줄임 — 둘째 줄 끝 단어만 떨어지지 않게 */
+		line-height: 1.4;
+	}
+}
+@media (max-width: 768px) {
+	.ab_intro_stage {
+		gap: 64px;
+		padding: 120px var(--side) 96px;
+	}
+	.ab_hero_tit {
+		font-size: 64px;
+	}
+	.ab_statement {
+		font-size: 7.5vw; /* 태블릿: 모바일(480px에서 36px)과 같은 비율로 화면 폭에 맞춰 커짐 (768px에서 57.6px) */
+		line-height: 1.2222; /* 44 / 36 */
+	}
+}
+@media (max-width: 480px) {
+	.ab_hero_tit {
+		font-size: 48px;
+	}
+	.ab_statement {
+		font-size: 36px;
+		line-height: 44px;
+	}
+}
+/* 768px 이하에서만 쓰는 줄바꿈 (소개 문장 "온도어는 그 첫 문을 / 기획부터 운영까지 / 함께 엽니다." · 서비스 문장 "…이어지는 / 홈페이지를 만듭니다.") */
+@media (min-width: 769px) {
+	.ab_br_m,
+	.ab_br_s {
+		display: none;
+	}
+}
+
+/* 연출: 고정 장면 (섹션 높이만큼 스크롤하는 동안 화면은 그대로) */
+.ab.is-fx .ab_intro {
+	height: 280vh;
+}
+.ab.is-fx .ab_intro_stage {
+	position: sticky;
+	top: 0;
+	display: block;
+	height: 100vh;
+	height: 100svh;
+	min-height: 0;
+	padding: 0;
+}
+.ab.is-fx .ab_hero {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: 0 var(--side);
+}
+.ab.is-fx .ab_statement {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	max-width: none;
+	padding: 0 var(--side); /* 폭 제한 없이 양옆 여백까지 */
+	text-align: center;
+}
+/* 스크롤 안내 꺾쇠: 메인(visual.scss .scroll_arrow)과 같음 — 화면 맨 아래에서 36px(768px 이하 16px), 가로 정가운데 */
+.ab.is-fx .ab_scroll {
+	position: absolute;
+	left: 50%;
+	bottom: 36px;
+	display: block;
+	translate: -50% 0;
+	pointer-events: none;
+}
+@media (max-width: 768px) {
+	.ab.is-fx .ab_scroll {
+		bottom: 16px;
+	}
+}
+
+/* ---------- ② 서비스 카드 + 문장 ----------
+   가운데 문장 + 검정 카드 3 × 2 (번호 · 제목 · 설명 · 3D 아이콘)
+   연출(.is-fx, 769px 이상): 고정된 채 문장이 나타나고, 카드가 열마다 시차를 두고 아래에서 올라와 문장 위를 덮음 (카드가 문장보다 앞) */
+.ab_works {
+	position: relative;
+	color: #fff; /* 배경은 투명 — 뒤에 고정된 유리 도형이 카드 사이로 보임 (메인 서비스 섹션과 같음) */
+}
+.ab_works_stage {
+	position: relative;
+	padding: 160px var(--side);
+}
+.ab_works_msg {
+	position: relative;
+	z-index: 0;
+	max-width: 1040px;
+	margin: 0 auto 80px;
+	text-align: center;
+}
+.ab_works_tit {
+	font-size: 56px; /* 소개 문장(.ab_statement)과 같은 크기 · 줄높이 (반응형 단계도 같음) */
+	line-height: 72px;
+	font-weight: 700;
+	letter-spacing: -0.02em;
+	word-break: keep-all;
+}
+.ab_works_grid {
+	position: relative;
+	z-index: 1; /* 문장 위로 올라옴 */
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 8px;
+}
+.ab_work {
+	position: relative;
+	min-height: 280px;
+	padding: 32px;
+	border-radius: 8px;
+	background: #151515;
+	overflow: hidden;
+}
+.ab_work .num {
+	display: block;
+	font-size: 14px;
+	line-height: 1;
+	color: rgba(255, 255, 255, 0.4);
+}
+.ab_work h3 {
+	margin-top: 24px;
+	font-size: 24px;
+	line-height: 1;
+	font-weight: 700;
+}
+.ab_work p {
+	max-width: 320px;
+	margin-top: 16px;
+	font-size: 14px;
+	line-height: 24px;
+	color: rgba(255, 255, 255, 0.6);
+}
+@media (hover: hover) and (pointer: fine) {
+	.ab_work:hover .fig svg {
+		opacity: 1;
+	}
+}
+@media (max-width: 1280px) {
+	.ab_works_tit {
+		font-size: 48px;
+		line-height: 64px;
+	}
+}
+@media (max-width: 1024px) {
+	.ab_works_tit {
+		font-size: min(40px, 4.4vw); /* 소개 문장과 같음 */
+		line-height: 1.4;
+	}
+	.ab_works_grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+@media (max-width: 768px) {
+	.ab_works_stage {
+		padding: 96px var(--side);
+	}
+	.ab_works_msg {
+		margin-bottom: 48px;
+	}
+	.ab_works_tit {
+		font-size: 5vw; /* 태블릿: 모바일(480px에서 24px)과 같은 비율로 화면 폭에 맞춰 커짐 (768px에서 38.4px) — 카드 제목(.ab_work h3)보다 큼 */
+		line-height: 1.5; /* 36 / 24 */
+	}
+	.ab_works_grid {
+		grid-template-columns: minmax(0, 1fr);
+	}
+	.ab_work {
+		min-height: 240px;
+		padding: 24px;
+	}
+	.ab_work .fig {
+		right: 8px;
+		bottom: 8px;
+		width: 120px;
+	}
+}
+@media (max-width: 480px) {
+	.ab_works_tit {
+		font-size: 24px; /* 소개 문장과 같은 단계 */
+		line-height: 36px;
+	}
+	.ab_work {
+		min-height: 216px;
+	}
+	.ab_work h3 {
+		font-size: 20px;
+	}
+	/* 좁은 카드: 아이콘을 줄이고 설명을 아이콘 왼쪽까지만 (글자와 아이콘이 겹치지 않게 — 아이콘이 카드 안쪽 여백보다 80px 들어옴 + 8px 띄움) */
+	.ab_work p {
+		max-width: calc(100% - 88px);
+	}
+	.ab_work .fig {
+		width: 96px;
+	}
+}
+@media (max-width: 400px) {
+	.ab_works_tit {
+		font-size: 22px;
+		line-height: 32px;
+	}
+}
+.ab.is-fx .ab_works {
+	height: 400vh; /* 문장 단어가 밝아지는 구간 + 카드 올라오는 구간 */
+	margin-top: -100vh; /* 첫 화면 고정이 풀리는 순간 같은 자리에서 이 장면이 고정됨 → 섹션이 위로 올라가지 않고 제자리에서 바뀜 (js/sub.js) */
+}
+.ab.is-fx .ab_works_stage {
+	position: sticky;
+	top: 0;
+	height: 100vh;
+	height: 100svh;
+	padding: 96px var(--side) 40px; /* 아래 40px: 768px 이하 카드 묶음이 멈추는 자리 (js/sub.js와 같은 값) */
+	overflow: hidden;
+}
+.ab.is-fx .ab_works_msg {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	max-width: none;
+	margin: 0;
+	padding: 0 var(--side);
+	pointer-events: none;
+}
+@media (min-width: 769px) {
+	.ab.is-fx .ab_works_grid {
+		height: 100%;
+		grid-auto-rows: minmax(0, 1fr);
+	}
+	.ab.is-fx .ab_work {
+		min-height: 0;
+	}
+}
+/* 768px 이하: 카드가 한 줄씩 쌓여 한 화면에 안 들어감 → 카드 묶음 전체가 화면 아래에서 올라와 문장을 덮고 끝까지 지나감 (js/sub.js)
+   카드가 지나가는 거리만큼 섹션을 더 길게 */
+@media (max-width: 768px) {
+	.ab.is-fx .ab_works {
+		height: 500vh;
+	}
+}
+
+/* 검정(서비스 카드) → 흰 구간 사이 한 화면 그라데이션 (메인 We Are 앞 .weare_head와 같은 방식: 70%부터 흰색) */
+.ab_grad {
+	height: 100vh;
+	height: 100svh;
+	background: linear-gradient(to bottom, rgba(255, 255, 255, 0), #fff 70%); /* 메인 .weare_head와 같은 값 — 뒤 유리 도형을 덮으며 흰색으로 */
+}
+/* 그라데이션이 화면 맨 위에 걸린 동안 헤더 맨 위 검정 띠(.hd_edge, 터치 기기)를 숨김 — 밝아지는 바탕 위에 줄로 보이지 않게 (js/sub.js) */
+#hd.is-edge-off .hd_edge {
+	visibility: hidden;
+}
+.ab_dark + .ab_light > .ab_sec:first-child {
+	padding-top: 0; /* 그라데이션 아래 30%가 이미 흰 여백 */
+}
+
+/* ---------- ③ ~ ⑤ 흰 구간 공통 ---------- */
+.ab_light {
+	position: relative;
+	z-index: 1; /* 검정 구간 아래로 한 화면 더 고정된 유리 도형(.ab_glass_wrap) 위를 덮음 */
+	padding: 0 var(--side);
+	background: #fff;
+}
+.ab_sec {
+	padding-top: 160px;
+}
+.ab_tit {
+	margin-bottom: 40px;
+	font-size: 40px;
+	line-height: 1;
+	font-weight: 700;
+	letter-spacing: -0.02em;
+	color: #222;
+}
+@media (max-width: 1024px) {
+	.ab_sec {
+		padding-top: 120px;
+	}
+}
+@media (max-width: 768px) {
+	.ab_sec {
+		padding-top: 80px;
+	}
+	.ab_tit {
+		margin-bottom: 24px;
+		font-size: 28px;
+	}
+}
+@media (max-width: 480px) {
+	.ab_tit {
+		font-size: 24px;
+	}
+}
+
+/* ---------- ③ 진행 과정 흐름도 (회색 판) ----------
+   [고객] [온도어] → 점선 화살표 → [프로젝트 진행: 기획 → 디자인 → 개발 → 검수] → 점선 화살표 → [오픈] [운영]
+   연출: 상자가 올라오고, 점선이 스크롤에 따라 위에서 아래로 그어짐 */
+.ab_flow_panel {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 360px));
+	justify-content: center;
+	column-gap: 32px;
+	padding: 64px 40px;
+	border-radius: 8px;
+	background: #f4f4f4;
+}
+.ab_flow_box {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 8px;
+	padding: 32px 24px;
+	border-radius: 8px;
+	background: #fff;
+	text-align: center;
+}
+.ab_flow_box strong {
+	font-size: 20px;
+	line-height: 1;
+	font-weight: 700;
+	color: #222;
+}
+.ab_flow_box span {
+	font-size: 14px;
+	line-height: 24px;
+	color: #666;
+	word-break: keep-all;
+}
+.ab_flow_pill {
+	margin-top: 16px;
+	padding: 12px 20px;
+	border-radius: 8px;
+	background: #151515;
+	font-size: 14px;
+	line-height: 1;
+	font-style: normal;
+	font-weight: 700;
+	color: #fff;
+}
+.ab_flow_tag {
+	margin-bottom: 8px;
+	padding: 6px 8px;
+	border-radius: 4px;
+	background: #f4f4f4;
+	font-size: 12px;
+	line-height: 1;
+	font-style: normal;
+	font-weight: 700;
+	color: #444;
+}
+.ab_flow_line {
+	position: relative;
+	display: block;
+	justify-self: center;
+	width: 1px;
+	height: 56px;
+	margin: 16px 0; /* 위 · 아래 상자와 띄움 (화살표 끝이 상자에 붙지 않게) */
+	background: repeating-linear-gradient(to bottom, #888 0 4px, transparent 4px 8px);
+	transform-origin: top;
+}
+.ab_flow_line::after {
+	content: "";
+	position: absolute;
+	left: 50%;
+	bottom: 1px;
+	width: 8px;
+	height: 8px;
+	border-right: 1px solid #888;
+	border-bottom: 1px solid #888;
+	transform: translateX(-50%) rotate(45deg);
+}
+.ab_flow_bar {
+	grid-column: 1 / -1;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+	gap: 16px 24px;
+	padding: 24px 32px;
+	border-radius: 8px;
+	background: #151515;
+	color: #fff;
+}
+.ab_flow_bar b {
+	font-size: 20px;
+	line-height: 1;
+	font-weight: 700;
+}
+.ab_flow_bar ol {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+}
+.ab_flow_bar li {
+	font-size: 16px;
+	line-height: 1;
+	color: rgba(255, 255, 255, 0.7);
+}
+.ab_flow_bar li + li::before {
+	content: "→";
+	margin-right: 8px;
+	color: rgba(255, 255, 255, 0.4);
+}
+@media (max-width: 768px) {
+	.ab_flow_panel {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		column-gap: 16px;
+		padding: 32px 16px;
+	}
+	.ab_flow_box {
+		padding: 24px 16px;
+	}
+	.ab_flow_box strong {
+		font-size: 16px;
+	}
+	.ab_flow_line {
+		height: 40px;
+		margin: 8px 0;
+	}
+	.ab_flow_bar {
+		padding: 20px 16px;
+	}
+	.ab_flow_bar b {
+		font-size: 16px;
+	}
+	.ab_flow_bar li {
+		font-size: 14px;
+	}
+}
+/* 480px 이하: 상자를 한 줄에 하나씩 가로로 넓게 쌓고 점선 화살표는 뺌 (2단이면 설명이 세 줄로 쪼개짐) */
+@media (max-width: 480px) {
+	.ab_flow_panel {
+		grid-template-columns: minmax(0, 1fr);
+		row-gap: 8px;
+	}
+	.ab_flow_line {
+		display: none;
+	}
+}
+
+/* ---------- ⑤ 역할: 온도어(검정) · 고객(#444) 2단 ---------- */
+.ab_role_cols {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 32px;
+}
+.ab_role_head {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 80px;
+	border-radius: 8px;
+	background: #444;
+	font-size: 24px;
+	line-height: 1;
+	font-weight: 700;
+	color: #fff;
+}
+.ab_role_col.is-us .ab_role_head {
+	background: #151515;
+}
+.ab_role_body {
+	margin-top: 8px;
+	padding: 40px;
+	border-radius: 8px;
+	background: #f4f4f4;
+}
+.ab_role_lead {
+	font-size: 24px;
+	line-height: 32px;
+	font-weight: 700;
+	color: #222;
+}
+.ab_role_list {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin-top: 24px;
+}
+.ab_role_list li {
+	display: flex;
+	align-items: flex-start;
+	gap: 16px;
+	padding: 20px 24px;
+	border-radius: 8px;
+	background: #fff;
+	font-size: 16px;
+	line-height: 24px;
+	word-break: keep-all;
+	color: #444;
+}
+.ab_role_list .n {
+	display: flex;
+	flex: 0 0 auto;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	height: 24px;
+	border-radius: 4px;
+	background: #444;
+	font-size: 12px;
+	line-height: 1;
+	font-weight: 700;
+	color: #fff;
+}
+.ab_role_col.is-us .ab_role_list .n {
+	background: #151515;
+}
+@media (max-width: 768px) {
+	.ab_role_cols {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 24px;
+	}
+	.ab_role_head {
+		height: 64px;
+		font-size: 20px;
+	}
+	.ab_role_body {
+		padding: 24px;
+	}
+	.ab_role_lead {
+		font-size: 20px;
+	}
+	.ab_role_list li {
+		padding: 16px;
+		font-size: 14px;
+	}
+}
+
+/* ---------- ⑥ Blog · Contact 카드 ----------
+   메뉴 카드(layout.scss .gnb_link)와 같은 글자 · 화살표: 큰 대문자 + 한글 설명 + → (올리면 오른쪽으로)
+   태블릿 이상: 반반 · 높은 카드(위에 제목, 오른쪽 아래 화살표) / 480px 이하: 한 줄에 하나씩 메뉴 카드처럼 낮게(80px)
+   색만 다름: BLOG 회색 · CONTACT 검정
+   마우스를 올리면 제목 글자가 한 글자씩(0.025초 간격) 위로 굴러 올라감 (js/sub.js가 글자를 나눔) */
+.sub_links {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 32px; /* 위 2단(진행 과정 · 역할)과 같은 간격 — 768px 이하 16px(진행 과정 상자 간격) */
+	margin-top: 160px;
+	padding-bottom: 160px;
+}
+.sub_link {
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	gap: 40px;
+	min-height: 240px;
+	padding: 40px;
+	border-radius: 8px;
+	background: #151515;
+	color: #fff;
+}
+.sub_link .arw {
+	align-self: flex-end; /* 오른쪽 아래 */
+}
+.sub_link .t {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 8px 16px;
+	min-width: 0;
+}
+.sub_link b {
+	display: inline-flex;
+	overflow: hidden;
+	font-size: 56px; /* 높은 카드에 맞춘 크기 (1024px 이하 최대 48 · 태블릿 최대 40 — 반반 칸 폭에 맞춰 줄어듦 · 480px 이하 낮은 줄 24) */
+	line-height: 1;
+	font-weight: 900;
+	letter-spacing: -0.02em;
+	text-transform: uppercase;
+}
+.sub_link b span {
+	position: relative;
+	display: inline-block;
+	transition: transform 0.5s var(--ease) calc(var(--i, 0) * 0.025s);
+}
+.sub_link b span::after {
+	content: attr(data-ch);
+	position: absolute;
+	left: 0;
+	top: 100%;
+}
+.sub_link small {
+	font-size: 14px;
+	line-height: 1;
+	color: rgba(255, 255, 255, 0.5);
+	white-space: nowrap;
+}
+.sub_link .arw {
+	flex: 0 0 auto;
+	width: 24px;
+	height: 24px;
+	background: currentColor;
+	-webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 12h16M14 6l6 6-6 6'/%3E%3C/svg%3E") center / contain no-repeat;
+	mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 12h16M14 6l6 6-6 6'/%3E%3C/svg%3E") center / contain no-repeat;
+	transition: transform 0.4s var(--ease);
+}
+.sub_link.is-blog {
+	background: #f4f4f4;
+	color: #222;
+}
+.sub_link.is-blog small {
+	color: #888;
+}
+@media (hover: hover) and (pointer: fine) {
+	.sub_link:hover b span {
+		transform: translateY(-100%);
+	}
+	.sub_link:hover .arw {
+		transform: translateX(4px);
+	}
+}
+@media (max-width: 1024px) {
+	.sub_links {
+		margin-top: 120px;
+		padding-bottom: 120px;
+	}
+	.sub_link b {
+		font-size: min(48px, 4.7vw); /* 반반 칸 폭에 맞춰 (769px에서 약 36px) */
+	}
+}
+@media (max-width: 768px) {
+	.sub_links {
+		gap: 16px;
+		margin-top: 80px;
+		padding-bottom: 80px;
+	}
+	.sub_link {
+		min-height: 200px;
+		padding: 24px;
+	}
+	.sub_link b {
+		font-size: min(40px, 6vw); /* 반반 칸 폭에 맞춰 (481px에서 약 29px) */
+	}
+}
+/* 태블릿(481~768px): 반반 칸이 좁아 설명을 제목 아래로 */
+@media (min-width: 481px) and (max-width: 768px) {
+	.sub_link .t {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 8px;
+	}
+}
+/* 480px 이하: 한 줄에 하나씩, 메뉴 카드 모바일과 같은 낮은 줄 (높이 80px · 오른쪽 가운데 화살표) */
+@media (max-width: 480px) {
+	.sub_links {
+		grid-template-columns: minmax(0, 1fr);
+	}
+	.sub_link {
+		flex-direction: row;
+		align-items: center;
+		gap: 16px;
+		min-height: 0;
+		height: 80px;
+		padding: 0 24px;
+	}
+	.sub_link .arw {
+		align-self: auto;
+		width: 20px;
+		height: 20px;
+	}
+	.sub_link b {
+		font-size: 24px; /* 낮은 줄(80px)에 맞춤 — 메뉴 카드 모바일과 같음 */
+	}
+}
+
+/* ========== 상담문의 (page/contact.php) ==========
+   가운데 한 열(최대 800px): 라벨(CONTACT) + 큰 제목(상담 문의) → 상담 폼 — 테두리 · 카드 없이 흰 바탕에 바로
+   폼은 메인 하단 폼과 같은 것(include/contact_form.php od_contact_form) — 모양은 아래 .ct_form .contact_form (메인 visual.min.css의 .weare .contact_form 규칙을 옮김)
+   헤더는 처음부터 흰 바탕용(#444), 이 페이지엔 오른쪽 아래 빠른 상담 문의칸을 띄우지 않음 (tail.php $od_no_cw) */
+.ct {
+	padding: 160px var(--side);
+	background: #fff;
+}
+.ct_form {
+	max-width: 800px;
+	margin: 0 auto;
+}
+/* 머리: 게시판(board.scss .ob_lbl · .ob_tit)과 같은 모양 — 작은 영문 라벨 + 큰 제목(굵기 900) */
+.ct_lbl {
+	margin: 0 0 24px;
+	font-size: 14px;
+	line-height: 1;
+	font-weight: 100;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: #888;
+}
+.ct_tit {
+	margin: 0 0 0 -0.045em; /* 큰 글자 앞 여백만큼 당겨 라벨과 줄 맞춤 */
+	font-size: clamp(48px, 8.4vw, 120px);
+	line-height: 1;
+	font-weight: 900;
+	word-break: keep-all;
+	color: #222;
+}
+@media (max-width: 768px) {
+	.ct {
+		padding: 120px var(--side) 80px;
+	}
+	.ct_lbl {
+		margin-bottom: 16px;
+	}
+}
+
+/* 상담 폼 모양 — 메인 visual.min.css의 .weare .contact_form 규칙을 .ct_form 범위로 그대로 옮김 (원본: _contact_form.scss의 contact-form mixin)
+   _contact_form.scss를 고치면 메인 화면을 컴파일한 뒤 이 부분도 다시 옮겨야 함. 체크 · 확인 버튼 애니메이션(keyframes)은 layout.min.css에 있음 */.ct_form .contact_form{margin-top:16px}
+.ct_form .contact_form .cf_hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.ct_form .contact_form .cf_grid{display:grid;grid-template-columns:1fr 1fr;gap:24px 16px}
+.ct_form .contact_form .cf_field{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-orient:vertical;-webkit-box-direction:normal;-ms-flex-direction:column;flex-direction:column;gap:8px;min-width:0}
+.ct_form .contact_form .cf_field.is-full{grid-column:1/-1}
+.ct_form .contact_form .cf_field label{font-size:16px;line-height:1;font-weight:500;color:#444}
+.ct_form .contact_form input[type=text],.ct_form .contact_form input[type=tel],.ct_form .contact_form select,.ct_form .contact_form textarea{width:100%;height:56px;padding:0 16px;border:0;border-radius:8px;background-color:#f4f4f4 !important;font-size:16px;line-height:24px;color:#222;outline:none;-webkit-transition-property:background-color,-webkit-box-shadow;transition-property:background-color,-webkit-box-shadow;transition-property:box-shadow,background-color;transition-property:box-shadow,background-color,-webkit-box-shadow;-webkit-transition-duration:.16s;transition-duration:.16s;-webkit-transition-timing-function:cubic-bezier(0.2, 0, 0, 1);transition-timing-function:cubic-bezier(0.2, 0, 0, 1);-webkit-appearance:none;-moz-appearance:none;appearance:none}
+.ct_form .contact_form input[type=text]::-webkit-input-placeholder,.ct_form .contact_form input[type=tel]::-webkit-input-placeholder,.ct_form .contact_form select::-webkit-input-placeholder,.ct_form .contact_form textarea::-webkit-input-placeholder{color:#888}
+.ct_form .contact_form input[type=text]::-moz-placeholder,.ct_form .contact_form input[type=tel]::-moz-placeholder,.ct_form .contact_form select::-moz-placeholder,.ct_form .contact_form textarea::-moz-placeholder{color:#888}
+.ct_form .contact_form input[type=text]:-ms-input-placeholder,.ct_form .contact_form input[type=tel]:-ms-input-placeholder,.ct_form .contact_form select:-ms-input-placeholder,.ct_form .contact_form textarea:-ms-input-placeholder{color:#888}
+.ct_form .contact_form input[type=text]::-ms-input-placeholder,.ct_form .contact_form input[type=tel]::-ms-input-placeholder,.ct_form .contact_form select::-ms-input-placeholder,.ct_form .contact_form textarea::-ms-input-placeholder{color:#888}
+.ct_form .contact_form input[type=text]::placeholder,.ct_form .contact_form input[type=tel]::placeholder,.ct_form .contact_form select::placeholder,.ct_form .contact_form textarea::placeholder{color:#888}
+.ct_form .contact_form input[type=text]:focus,.ct_form .contact_form input[type=text]:focus-visible,.ct_form .contact_form input[type=tel]:focus,.ct_form .contact_form input[type=tel]:focus-visible,.ct_form .contact_form select:focus,.ct_form .contact_form select:focus-visible,.ct_form .contact_form textarea:focus,.ct_form .contact_form textarea:focus-visible{outline:none;background-color:#fff !important;-webkit-box-shadow:0 2px 12px rgba(68,68,68,.14),0 0 0 4px rgba(68,68,68,.04);box-shadow:0 2px 12px rgba(68,68,68,.14),0 0 0 4px rgba(68,68,68,.04)}
+.ct_form .contact_form .cf_etc{display:none}
+.ct_form .contact_form .is-etc .cf_etc{display:block}
+.ct_form .contact_form select{padding-right:40px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 16px center;background-size:16px;cursor:pointer}
+.ct_form .contact_form select:invalid{color:#888}
+.ct_form .contact_form textarea{height:160px;padding:16px;resize:vertical}
+.ct_form .contact_form .cf_select{position:relative}
+.ct_form .contact_form .cf_select select{position:absolute;inset:0;opacity:0;pointer-events:none}
+.ct_form .contact_form .cf_select_btn{position:relative;display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;width:100%;height:56px;padding:0 48px 0 16px;border-radius:8px;background-color:#f4f4f4;font-size:16px;line-height:1;color:#222;text-align:left;outline:none;-webkit-transition-property:background-color,-webkit-box-shadow;transition-property:background-color,-webkit-box-shadow;transition-property:box-shadow,background-color;transition-property:box-shadow,background-color,-webkit-box-shadow;-webkit-transition-duration:.16s;transition-duration:.16s;-webkit-transition-timing-function:cubic-bezier(0.2, 0, 0, 1);transition-timing-function:cubic-bezier(0.2, 0, 0, 1)}
+.ct_form .contact_form .cf_select_btn::after{content:"";position:absolute;top:50%;right:16px;width:16px;height:16px;margin-top:-8px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") center/contain no-repeat;-webkit-transition:-webkit-transform .3s cubic-bezier(0.22, 1, 0.36, 1);transition:-webkit-transform .3s cubic-bezier(0.22, 1, 0.36, 1);transition:transform .3s cubic-bezier(0.22, 1, 0.36, 1);transition:transform .3s cubic-bezier(0.22, 1, 0.36, 1), -webkit-transform .3s cubic-bezier(0.22, 1, 0.36, 1)}
+.ct_form .contact_form .cf_select_btn.is-empty{color:#888}
+.ct_form .contact_form .cf_select_btn:focus-visible{background-color:#fff;-webkit-box-shadow:0 2px 12px rgba(68,68,68,.14),0 0 0 4px rgba(68,68,68,.04);box-shadow:0 2px 12px rgba(68,68,68,.14),0 0 0 4px rgba(68,68,68,.04)}
+.ct_form .contact_form .cf_select.is-open .cf_select_btn{background-color:#fff;-webkit-box-shadow:0 2px 12px rgba(68,68,68,.14),0 0 0 4px rgba(68,68,68,.04);box-shadow:0 2px 12px rgba(68,68,68,.14),0 0 0 4px rgba(68,68,68,.04)}
+.ct_form .contact_form .cf_select.is-open .cf_select_btn::after{-webkit-transform:rotate(180deg);-ms-transform:rotate(180deg);transform:rotate(180deg)}
+.ct_form .contact_form .cf_select_list{position:absolute;top:calc(100% + 8px);left:0;right:0;z-index:10;max-height:288px;padding:8px;border-radius:8px;background:#fff;-webkit-box-shadow:0 2px 12px rgba(68,68,68,.14),0 16px 40px rgba(17,17,17,.08);box-shadow:0 2px 12px rgba(68,68,68,.14),0 16px 40px rgba(17,17,17,.08);overflow-y:auto;-ms-scroll-chaining:none;overscroll-behavior:none;opacity:0;visibility:hidden;-webkit-transform:translateY(-8px);-ms-transform:translateY(-8px);transform:translateY(-8px);-webkit-transition:opacity .2s,visibility 0s .3s,-webkit-transform .3s cubic-bezier(0.22, 1, 0.36, 1);transition:opacity .2s,visibility 0s .3s,-webkit-transform .3s cubic-bezier(0.22, 1, 0.36, 1);transition:opacity .2s,transform .3s cubic-bezier(0.22, 1, 0.36, 1),visibility 0s .3s;transition:opacity .2s,transform .3s cubic-bezier(0.22, 1, 0.36, 1),visibility 0s .3s,-webkit-transform .3s cubic-bezier(0.22, 1, 0.36, 1)}
+.ct_form .contact_form .cf_select_list li{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;-webkit-box-pack:justify;-ms-flex-pack:justify;justify-content:space-between;gap:8px;height:48px;padding:0 16px;border-radius:4px;font-size:16px;line-height:1;color:#444;cursor:pointer}
+.ct_form .contact_form .cf_select_list li.is-active{background:#f4f4f4}
+.ct_form .contact_form .cf_select_list li[aria-selected=true]{font-weight:700;color:#222}
+.ct_form .contact_form .cf_select_list li[aria-selected=true]::after{content:"";-webkit-box-flex:0;-ms-flex:0 0 auto;flex:0 0 auto;width:16px;height:16px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23222' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center/contain no-repeat}
+.ct_form .contact_form .cf_select.is-open .cf_select_list{opacity:1;visibility:visible;-webkit-transform:none;-ms-transform:none;transform:none;-webkit-transition:opacity .2s,visibility 0s,-webkit-transform .3s cubic-bezier(0.22, 1, 0.36, 1);transition:opacity .2s,visibility 0s,-webkit-transform .3s cubic-bezier(0.22, 1, 0.36, 1);transition:opacity .2s,transform .3s cubic-bezier(0.22, 1, 0.36, 1),visibility 0s;transition:opacity .2s,transform .3s cubic-bezier(0.22, 1, 0.36, 1),visibility 0s,-webkit-transform .3s cubic-bezier(0.22, 1, 0.36, 1)}
+.ct_form .contact_form .cf_agree{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:8px;margin-top:32px;font-size:20px;line-height:1;color:#444}
+.ct_form .contact_form .cf_agree label{cursor:pointer}
+.ct_form .contact_form .cf_agree b{font-weight:700;color:#222}
+.ct_form .contact_form .cf_agree a{font-size:16px;color:#888;text-decoration:underline;text-underline-offset:3px}
+.ct_form .contact_form input[type=checkbox]{-webkit-appearance:none;-moz-appearance:none;appearance:none;position:relative;display:inline-grid;place-items:center;-webkit-box-flex:0;-ms-flex:0 0 auto;flex:0 0 auto;width:1em;height:1em;margin:0;padding:0;border:0;border-radius:50%;background:#ddd;cursor:pointer;-webkit-transition:background-color .2s cubic-bezier(0.2, 0, 0, 1),-webkit-transform .2s cubic-bezier(0.2, 0, 0, 1);transition:background-color .2s cubic-bezier(0.2, 0, 0, 1),-webkit-transform .2s cubic-bezier(0.2, 0, 0, 1);transition:background-color .2s cubic-bezier(0.2, 0, 0, 1),transform .2s cubic-bezier(0.2, 0, 0, 1);transition:background-color .2s cubic-bezier(0.2, 0, 0, 1),transform .2s cubic-bezier(0.2, 0, 0, 1),-webkit-transform .2s cubic-bezier(0.2, 0, 0, 1)}
+.ct_form .contact_form input[type=checkbox]::after{content:"";width:.625em;height:.625em;background:#fff;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center/contain no-repeat}
+.ct_form .contact_form input[type=checkbox]:active{-webkit-transform:scale(0.88);-ms-transform:scale(0.88);transform:scale(0.88)}
+.ct_form .contact_form input[type=checkbox]:checked{background:#444}
+.ct_form .contact_form input[type=checkbox]:checked::after{background:#fff}
+.ct_form .contact_form input[type=checkbox].is-toggled:checked{-webkit-animation:cf-check-pop .4s cubic-bezier(0.34, 1.56, 0.64, 1);animation:cf-check-pop .4s cubic-bezier(0.34, 1.56, 0.64, 1)}
+.ct_form .contact_form input[type=checkbox].is-toggled:checked::after{-webkit-animation:cf-check-draw .28s cubic-bezier(0.65, 0, 0.35, 1) .06s both;animation:cf-check-draw .28s cubic-bezier(0.65, 0, 0.35, 1) .06s both}
+.ct_form .contact_form input[type=checkbox]:focus{outline:none}
+.ct_form .contact_form input[type=checkbox]:focus-visible{-webkit-box-shadow:0 2px 12px rgba(68,68,68,.14);box-shadow:0 2px 12px rgba(68,68,68,.14)}
+.ct_form .contact_form .cf_btn{width:100%;height:72px;margin-top:32px;border:0;border-radius:8px;background:#444;font-size:20px;line-height:1;font-weight:700;color:#fff;cursor:pointer;-webkit-transition:background-color .3s;transition:background-color .3s}
+.ct_form .contact_form .cf_btn:hover,.ct_form .contact_form .cf_btn:focus-visible{background:#111}
+.ct_form .contact_form .cf_btn:disabled{opacity:.5;cursor:wait}
+.ct_form .contact_form .cf_msg{min-height:24px;margin:16px 0 0;font-size:14px;line-height:24px;color:#888;display:none}
+.ct_form .contact_form .cf_msg.is-ok{color:#222}
+.ct_form .contact_form .cf_msg.is-err{color:#d64545}
+.ct_form .contact_form .cf_links{display:-webkit-box;display:-ms-flexbox;display:flex;gap:16px;margin:8px 0 0;font-size:14px;line-height:1}
+.ct_form .contact_form .cf_links a{color:#888;-webkit-transition:color .2s;transition:color .2s}
+.ct_form .contact_form .cf_links a:hover{color:#222}
+.ct_form .contact_form .t2cap{margin-top:24px}
+.ct_form .contact_form .t2cap .t2cap_head{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-align:center;-ms-flex-align:center;align-items:center;gap:8px}
+.ct_form .contact_form .t2cap .t2cap_row{display:-webkit-box;display:-ms-flexbox;display:flex;gap:8px}
+@media(max-width: 768px){.ct_form .contact_form .t2cap .t2cap_row{-ms-flex-wrap:wrap;flex-wrap:wrap}}
+.ct_form .contact_form .t2cap .t2cap_q{display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-flex:1;-ms-flex:1 1 auto;flex:1 1 auto;-webkit-box-align:center;-ms-flex-align:center;align-items:center;min-width:0;min-height:56px;margin:0;padding:8px 16px;border-radius:8px;background:#f4f4f4;font-size:16px;line-height:24px;font-weight:700;color:#222;word-break:keep-all}
+@media(max-width: 768px){.ct_form .contact_form .t2cap .t2cap_q{-ms-flex-preferred-size:100%;flex-basis:100%}}
+.ct_form .contact_form .t2cap .t2cap_answer{-webkit-box-flex:0;-ms-flex:0 0 200px;flex:0 0 200px;min-width:0}
+@media(max-width: 768px){.ct_form .contact_form .t2cap .t2cap_answer{-webkit-box-flex:1;-ms-flex:1 1 auto;flex:1 1 auto}}
+.ct_form .contact_form .t2cap .t2cap_answer:disabled{color:#888}
+.ct_form .contact_form .t2cap .t2cap_check{-webkit-box-flex:0;-ms-flex:0 0 auto;flex:0 0 auto;height:56px;padding:0 24px;border-radius:8px;background:#444;font-size:16px;line-height:1;font-weight:700;color:#fff;-webkit-transition:background-color .3s;transition:background-color .3s}
+.ct_form .contact_form .t2cap .t2cap_check:hover:not(:disabled),.ct_form .contact_form .t2cap .t2cap_check:focus-visible{background:#111}
+.ct_form .contact_form .t2cap .t2cap_check:disabled{opacity:.5;cursor:default}
+.ct_form .contact_form .t2cap .t2cap_refresh{padding:0;background:none;font-size:16px;line-height:1;color:#888;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.ct_form .contact_form .t2cap .t2cap_msg{margin:8px 0 0;font-size:14px;line-height:1;color:#888}
+.ct_form .contact_form .t2cap .t2cap_msg:empty{display:none}
+.ct_form .contact_form .t2cap .t2cap_msg.is-err{color:#d64545}
+.ct_form .contact_form .t2cap .t2cap_msg.is-ok{position:absolute;width:1px;height:1px;margin:0;overflow:hidden;clip:rect(0 0 0 0)}
+.ct_form .contact_form .t2cap .t2cap_check{position:relative}
+.ct_form .contact_form .t2cap .t2cap_check::after{content:"";position:absolute;top:50%;left:50%;width:24px;height:24px;margin:-12px 0 0 -12px;background:#fff;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center/contain no-repeat;opacity:0}
+.ct_form .contact_form .t2cap.is-checking .t2cap_check:disabled{opacity:1;cursor:wait}
+.ct_form .contact_form .t2cap.is-ok .t2cap_check:disabled{opacity:1;background:#222;color:rgba(0,0,0,0);-webkit-animation:t2cap-pop .5s cubic-bezier(0.34, 1.56, 0.64, 1);animation:t2cap-pop .5s cubic-bezier(0.34, 1.56, 0.64, 1)}
+.ct_form .contact_form .t2cap.is-ok .t2cap_check:disabled::after{opacity:1;-webkit-animation:t2cap-draw .4s cubic-bezier(0.65, 0, 0.35, 1) .2s both;animation:t2cap-draw .4s cubic-bezier(0.65, 0, 0.35, 1) .2s both}
+@media(max-width: 480px){.ct_form .contact_form .cf_grid{grid-template-columns:1fr}}
+
+.ct_form .contact_form {
+	margin-top: 64px; /* 제목 · 설명 아래 */
+}
+@media (max-width: 768px) {
+	.ct_form .contact_form {
+		margin-top: 40px;
+	}
+}

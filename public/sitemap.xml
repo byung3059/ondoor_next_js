@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 메인 사이트맵 (정적 파일 — 서버가 이 파일을 그대로 내보냄)
+     메인 · 회사소개 · 상담문의 · 블로그 첫 화면만 넣음. 블로그 글은 Yoast SEO 사이트맵(/blog/sitemap_index.xml)이 맡음 — robots.txt에 둘 다 선언 -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <!-- 메인 -->
+  <url>
+    <loc>https://ondoor.co.kr/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>always</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- 회사소개 -->
+  <url>
+    <loc>https://ondoor.co.kr/page/ondoor</loc>
+    <lastmod>2026-11-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- 상담문의 -->
+  <url>
+    <loc>https://ondoor.co.kr/page/contact</loc>
+    <lastmod>2026-11-03</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- 블로그 목록 -->
+  <url>
+    <loc>https://ondoor.co.kr/blog/</loc>
+    <lastmod>2026-10-28</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+</urlset>

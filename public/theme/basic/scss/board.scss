@@ -1,0 +1,1666 @@
+/* board.scss — 게시판 스킨 공통 (theme/basic/skin/board/basic · ondoor_db가 scss/board.min.css로 불러옴)
+   메인 We Are 섹션 · 상담 폼과 같은 디자인
+   - 머리: 작은 라벨(BOARD) + 큰 대문자 제목(We Are 제목과 같은 굵기 900) + 글 수
+   - 입력 칸: 테두리 없음 · 연회색(#f4f4f4) 높이 56px · r 8px → 포커스하면 흰 배경 + 그림자 (관리자 테마와 같음)
+   - 버튼: 기본 연회색 / 주 버튼 #444 → 마우스를 올리면 #111, 체크박스: 관리자 테마와 같은 동그라미 체크
+   - 글자색 4단계(#222 제목 · #444 부제 · #666 본문 · #888 보조), 굵기 700 · 500 · 400, 간격 8px 배수, 한 줄 글자 line-height 1
+   서브 페이지는 위에 고정된 로고(#hd, 높이 96px)가 있어서 위 여백을 넉넉히 둠 */
+@import "vars";
+
+$line: rgba(0, 0, 0, 0.05); // 구분선
+$focus:
+	0 2px 12px rgba(68, 68, 68, 0.14),
+	0 0 0 4px rgba(68, 68, 68, 0.04); // 입력 칸 포커스 (상담 폼과 같음)
+$arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+$check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E");
+
+// 체크박스를 켤 때 작게 시작해 살짝 커졌다 제자리 + 체크가 왼쪽부터 그려짐 (상담 폼 cf-check-pop · cf-check-draw와 같음)
+@keyframes ob-check-pop {
+	0% {
+		transform: scale(0.8);
+	}
+	60% {
+		transform: scale(1.08);
+	}
+	100% {
+		transform: scale(1);
+	}
+}
+@keyframes ob-check-draw {
+	from {
+		clip-path: inset(0 100% 0 0);
+	}
+	to {
+		clip-path: inset(0 0 0 0);
+	}
+}
+
+.ob {
+	@include side-var;
+	max-width: calc(1280px + var(--side) * 2);
+	margin: 0 auto;
+	padding: 160px var(--side);
+	font-size: 16px;
+	line-height: 24px;
+	color: #666;
+	word-break: keep-all;
+
+	@media (max-width: 768px) {
+		padding-top: 120px;
+		padding-bottom: 120px;
+	}
+
+	a {
+		color: inherit;
+		text-decoration: none;
+	}
+
+	/* ---------- 머리: 라벨 + 큰 제목 + 글 수 ---------- */
+	.ob_head {
+		margin-bottom: 64px;
+
+		@media (max-width: 768px) {
+			margin-bottom: 40px;
+		}
+	}
+	.ob_lbl {
+		margin: 0 0 24px;
+		font-size: 14px;
+		line-height: 1;
+		font-weight: 100;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: #888;
+
+		@media (max-width: 768px) {
+			margin-bottom: 16px;
+		}
+	}
+	.ob_tit {
+		margin: 0 0 0 -0.045em; // 큰 글자 앞 여백만큼 당겨 라벨과 줄 맞춤 (We Are 제목과 같음)
+		font-size: clamp(48px, 8.4vw, 120px);
+		line-height: 1;
+		font-weight: 900;
+		text-transform: uppercase;
+		color: #222;
+		word-break: keep-all;
+	}
+	.ob_total {
+		margin: 24px 0 0;
+		font-size: 16px;
+		line-height: 1;
+		font-weight: 500;
+		color: #444;
+
+		b {
+			font-weight: 700;
+			color: #222;
+		}
+	}
+
+	/* ---------- 버튼 ---------- */
+	.ob_btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
+		height: 48px;
+		padding: 0 24px;
+		border: 0;
+		border-radius: 8px;
+		background: #f4f4f4;
+		font-size: 16px;
+		line-height: 1;
+		font-weight: 500;
+		color: #444;
+		white-space: nowrap;
+		cursor: pointer;
+		transition:
+			background-color 0.3s,
+			color 0.3s;
+
+		&:hover,
+		&:focus-visible {
+			background: #ebebeb;
+			color: #222;
+		}
+		// 주 버튼 (글쓰기 · 작성완료 · 댓글등록)
+		&.is-main {
+			background: #444;
+			font-weight: 700;
+			color: #fff;
+
+			&:hover,
+			&:focus-visible {
+				background: #111;
+				color: #fff;
+			}
+		}
+		// 큰 버튼 (작성완료 · 취소): 상담 신청 버튼과 같은 높이 72px · 글자 20px
+		&.is-lg {
+			height: 72px;
+			padding: 0 40px;
+			font-size: 20px;
+		}
+		&:disabled {
+			opacity: 0.5;
+			cursor: wait;
+		}
+	}
+	// 글자 버튼 (상담 폼 "보기" · "새로고침"과 같음)
+	.ob_txtbtn {
+		padding: 0;
+		border: 0;
+		background: none;
+		font-size: 14px;
+		line-height: 1;
+		color: #888;
+		text-decoration: underline;
+		text-underline-offset: 3px;
+		cursor: pointer;
+		transition: color 0.2s;
+
+		&:hover,
+		&:focus-visible {
+			color: #222;
+		}
+	}
+	.ob_btns {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 8px;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	/* ---------- 입력 칸 (상담 폼과 같음) ---------- */
+	input[type="text"],
+	input[type="password"],
+	input[type="email"],
+	input[type="url"],
+	input[type="tel"],
+	input[type="number"],
+	select,
+	textarea,
+	.frm_input {
+		width: 100%;
+		height: 56px;
+		padding: 0 16px;
+		border: 0;
+		border-radius: 8px;
+		background-color: #f4f4f4;
+		box-shadow: none;
+		font-size: 16px;
+		line-height: 24px;
+		color: #222;
+		vertical-align: middle;
+		outline: none;
+		transition-property: box-shadow, background-color;
+		transition-duration: 0.16s;
+		transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+		-webkit-appearance: none;
+		appearance: none;
+
+		&::placeholder {
+			color: #888;
+		}
+		&:focus,
+		&:focus-visible {
+			outline: none;
+			background-color: #fff;
+			box-shadow: $focus;
+		}
+	}
+	// 그누보드 기본 "필수" 표시 이미지 끄기 (필수 검사는 그대로)
+	.required {
+		background-image: none !important;
+	}
+	select {
+		padding-right: 40px;
+		background-image: $arrow;
+		background-repeat: no-repeat;
+		background-position: right 16px center;
+		background-size: 16px;
+		cursor: pointer;
+
+		&:focus {
+			background-image: $arrow;
+			background-repeat: no-repeat;
+			background-position: right 16px center;
+			background-size: 16px;
+		}
+	}
+	textarea {
+		height: 240px;
+		padding: 16px;
+		resize: vertical;
+	}
+
+	// 셀렉트 박스 커스텀 (js/board.js가 만듦, 상담 폼 .cf_select와 같음)
+	// 원래 select는 값 저장 · 필수 검사(안내 말풍선 위치)용으로 같은 자리에 투명하게 겹쳐 둠
+	.ob_select {
+		position: relative;
+		min-width: 0;
+
+		select {
+			position: absolute;
+			inset: 0;
+			height: 100%;
+			opacity: 0;
+			pointer-events: none;
+		}
+	}
+	.ob_select_btn {
+		position: relative;
+		display: flex;
+		align-items: center;
+		width: 100%;
+		height: 56px;
+		padding: 0 48px 0 16px;
+		border: 0;
+		border-radius: 8px;
+		background-color: #f4f4f4;
+		font-size: 16px;
+		line-height: 1;
+		color: #222;
+		text-align: left;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		outline: none;
+		cursor: pointer;
+		transition-property: box-shadow, background-color;
+		transition-duration: 0.16s;
+		transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+
+		&::after {
+			content: "";
+			position: absolute;
+			top: 50%;
+			right: 16px;
+			width: 16px;
+			height: 16px;
+			margin-top: -8px;
+			background: $arrow center / contain no-repeat;
+			transition: transform 0.3s $ease-out;
+		}
+		&.is-empty {
+			color: #888;
+		}
+		&:focus-visible {
+			background-color: #fff;
+			box-shadow: $focus;
+		}
+	}
+	.ob_select.is-open .ob_select_btn {
+		background-color: #fff;
+		box-shadow: $focus;
+
+		&::after {
+			transform: rotate(180deg);
+		}
+	}
+	// 목록: 버튼 아래 8px에 흰 상자 (길면 안에서 스크롤)
+	.ob_select_list {
+		position: absolute;
+		top: calc(100% + 8px);
+		left: 0;
+		z-index: 10;
+		min-width: 100%;
+		max-height: 288px;
+		margin: 0;
+		padding: 8px;
+		border-radius: 8px;
+		background: #fff;
+		box-shadow:
+			0 2px 12px rgba(68, 68, 68, 0.14),
+			0 16px 40px rgba(17, 17, 17, 0.08);
+		list-style: none;
+		overflow-y: auto;
+		overscroll-behavior: none;
+		opacity: 0;
+		visibility: hidden;
+		transform: translateY(-8px);
+		transition:
+			opacity 0.2s,
+			transform 0.3s $ease-out,
+			visibility 0s 0.3s;
+
+		li {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 16px;
+			height: 48px;
+			padding: 0 16px;
+			border-radius: 4px;
+			font-size: 16px;
+			line-height: 1;
+			color: #444;
+			white-space: nowrap;
+			cursor: pointer;
+
+			&.is-active {
+				background: #f4f4f4;
+			}
+			// 고른 항목: 굵게 + 오른쪽 체크
+			&[aria-selected="true"] {
+				font-weight: 700;
+				color: #222;
+
+				&::after {
+					content: "";
+					flex: 0 0 auto;
+					width: 16px;
+					height: 16px;
+					background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23222' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center / contain no-repeat;
+				}
+			}
+		}
+	}
+	.ob_select.is-open .ob_select_list {
+		opacity: 1;
+		visibility: visible;
+		transform: none;
+		transition:
+			opacity 0.2s,
+			transform 0.3s $ease-out,
+			visibility 0s;
+	}
+	// 파일: 연회색 칸 안에 [파일 선택] 버튼 + 파일 이름
+	input[type="file"] {
+		width: 100%;
+		padding: 12px 16px;
+		border-radius: 8px;
+		background: #f4f4f4;
+		font-size: 14px;
+		line-height: 1;
+		color: #666;
+		cursor: pointer;
+
+		&::file-selector-button {
+			height: 32px;
+			margin-right: 16px;
+			padding: 0 16px;
+			border: 0;
+			border-radius: 4px;
+			background: #444;
+			font-family: inherit;
+			font-size: 14px;
+			font-weight: 700;
+			color: #fff;
+			cursor: pointer;
+			transition: background-color 0.3s;
+		}
+		&:hover::file-selector-button {
+			background: #111;
+		}
+	}
+
+	// 체크박스: 관리자 테마(extend/adm_theme)와 같은 동그라미 체크 — 크기 20px (목록 .c_chk 칸 너비와 같게)
+	input[type="checkbox"] {
+		-webkit-appearance: none;
+		appearance: none;
+		position: relative;
+		display: inline-grid;
+		place-items: center;
+		flex: 0 0 auto;
+		width: 20px;
+		height: 20px;
+		margin: 0;
+		padding: 0;
+		border: 0;
+		border-radius: 50%;
+		background: #ddd;
+		vertical-align: middle;
+		cursor: pointer;
+		transition:
+			background-color 0.2s cubic-bezier(0.2, 0, 0, 1),
+			transform 0.2s cubic-bezier(0.2, 0, 0, 1);
+
+		&::after {
+			content: "";
+			width: 12px;
+			height: 12px;
+			background: #fff;
+			-webkit-mask: $check center / contain no-repeat;
+			mask: $check center / contain no-repeat;
+		}
+		&:active {
+			transform: scale(0.88);
+		}
+		&:checked {
+			background: #444;
+		}
+		// 직접 바꾼 순간에만(.is-toggled, js/board_check.js) — 페이지를 열 때 이미 켜져 있던 건 그냥 켜짐
+		&.is-toggled:checked {
+			animation: ob-check-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+			&::after {
+				animation: ob-check-draw 0.28s cubic-bezier(0.65, 0, 0.35, 1) 0.06s both;
+			}
+		}
+		&:focus {
+			outline: none;
+		}
+		&:focus-visible {
+			box-shadow: 0 2px 12px rgba(68, 68, 68, 0.14);
+		}
+	}
+	// 체크박스 + 글자 한 묶음
+	.ob_chk {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		font-size: 16px;
+		line-height: 1;
+		color: #444;
+		cursor: pointer;
+
+		label {
+			cursor: pointer;
+		}
+	}
+
+	/* ---------- 분류 (탭) ---------- */
+	.ob_cate {
+		margin-bottom: 40px;
+
+		ul {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 8px;
+			margin: 0;
+			padding: 0;
+			list-style: none;
+		}
+		a {
+			display: inline-flex;
+			align-items: center;
+			height: 40px;
+			padding: 0 20px;
+			border-radius: 20px;
+			background: #f4f4f4;
+			font-size: 14px;
+			line-height: 1;
+			font-weight: 500;
+			color: #666;
+			transition:
+				background-color 0.3s,
+				color 0.3s;
+
+			&:hover {
+				color: #222;
+			}
+		}
+		#bo_cate_on {
+			background: #444;
+			font-weight: 700;
+			color: #fff;
+		}
+	}
+
+	/* ---------- 목록 ---------- */
+	// 도구 줄: 왼쪽 검색, 오른쪽 버튼
+	.ob_tools {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: 16px;
+		margin-bottom: 24px;
+	}
+	.ob_sch {
+		display: flex;
+		gap: 8px;
+		width: 100%;
+		max-width: 480px;
+
+		.ob_select {
+			flex: 0 0 136px;
+		}
+		select,
+		.ob_select_btn {
+			height: 48px;
+		}
+		input[type="text"] {
+			flex: 1 1 auto;
+			min-width: 0;
+			height: 48px;
+		}
+		.ob_btn {
+			flex: 0 0 auto;
+		}
+	}
+
+	// 한 줄 = 한 글 (번호 · 제목 · 글쓴이 · 조회 · 날짜), 768px 이하는 제목 아래에 정보가 한 줄로
+	.ob_list {
+		margin: 0;
+		padding: 0;
+		border-top: 1px solid #222;
+		list-style: none;
+	}
+	.ob_row {
+		display: flex;
+		align-items: center;
+		gap: 16px;
+		min-height: 80px;
+		padding: 16px 8px;
+		border-bottom: 1px solid $line;
+		font-size: 14px;
+		line-height: 1;
+		color: #888;
+		transition: background-color 0.2s;
+
+		&:not(.is-head):hover {
+			background: rgba(34, 34, 34, 0.02);
+		}
+		// 머리 줄
+		&.is-head {
+			min-height: 56px;
+			font-weight: 500;
+			color: #444;
+
+			a {
+				color: #444;
+
+				&:hover {
+					color: #222;
+				}
+			}
+		}
+		// 공지
+		&.is-notice {
+			background: rgba(34, 34, 34, 0.03);
+
+			.ob_subj a {
+				font-weight: 700;
+			}
+		}
+		.c_chk {
+			flex: 0 0 20px;
+			display: flex;
+		}
+		.c_num {
+			flex: 0 0 64px;
+			text-align: center;
+			font-variant-numeric: tabular-nums;
+		}
+		.c_subj {
+			flex: 1 1 auto;
+			min-width: 0;
+		}
+		.c_name {
+			flex: 0 0 120px;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+		.c_hit,
+		.c_good {
+			flex: 0 0 64px;
+			text-align: center;
+			font-variant-numeric: tabular-nums;
+		}
+		.c_date {
+			flex: 0 0 96px;
+			text-align: center;
+			font-variant-numeric: tabular-nums;
+		}
+		&.is-head .c_subj {
+			text-align: center;
+		}
+	}
+	// 줄 전체 클릭 → 글 보기 (블로그 스킨 ondoor_blog: .ob_list.is-link)
+	// 제목 링크의 ::after를 줄 전체로 늘림 — <li>를 <a>로 감싸면 안의 분류 배지 · 글쓴이 링크와 겹쳐(링크 안 링크) 쓸 수 없음
+	// 체크박스 · 분류 배지 · 글쓴이 링크는 그 위로 올려 따로 누를 수 있게 (줄에 마우스를 올리면 제목이 흐려짐 = 제목 링크 :hover)
+	.ob_list.is-link {
+		.ob_row:not(.is-head) {
+			position: relative;
+		}
+		a.ob_subj_link::after {
+			content: "";
+			position: absolute;
+			inset: 0;
+		}
+		.c_chk,
+		a.ob_badge,
+		.c_name a,
+		.c_name .sv_wrap {
+			position: relative;
+			z-index: 1;
+		}
+	}
+	// 제목 칸: 분류 · 제목 · 표시(비밀 · 새 글 · 파일 · 댓글 수)
+	.ob_subj {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 8px;
+
+		a.ob_subj_link {
+			min-width: 0;
+			font-size: 18px;
+			line-height: 24px;
+			font-weight: 500;
+			color: #222;
+			transition: opacity 0.2s;
+
+			&:hover {
+				opacity: 0.6;
+			}
+		}
+		.fa {
+			font-size: 14px;
+			color: #888;
+		}
+		.icon_reply {
+			vertical-align: middle;
+		}
+	}
+	.ob_badge {
+		display: inline-flex;
+		align-items: center;
+		height: 24px;
+		padding: 0 8px;
+		border-radius: 4px;
+		background: #f4f4f4;
+		font-size: 12px;
+		line-height: 1;
+		font-weight: 500;
+		color: #666;
+
+		&.is-dark {
+			background: #444;
+			font-weight: 700;
+			color: #fff;
+		}
+	}
+	.ob_new {
+		display: inline-grid;
+		place-items: center;
+		width: 16px;
+		height: 16px;
+		border-radius: 50%;
+		background: #222;
+		font-size: 10px;
+		line-height: 1;
+		font-weight: 700;
+		color: #fff;
+	}
+	.ob_cmt {
+		font-size: 14px;
+		line-height: 1;
+		font-weight: 700;
+		color: #444;
+	}
+	.ob_empty {
+		padding: 120px 0;
+		border-bottom: 1px solid $line;
+		font-size: 16px;
+		line-height: 1;
+		text-align: center;
+		color: #888;
+	}
+	// 아래 버튼 줄
+	.ob_foot {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: flex-end;
+		gap: 8px;
+		margin-top: 24px;
+	}
+
+	@media (max-width: 768px) {
+		.ob_tools {
+			flex-direction: column-reverse;
+			align-items: stretch;
+		}
+		.ob_sch {
+			max-width: none;
+
+			.ob_select {
+				flex-basis: 112px;
+			}
+		}
+		.ob_row {
+			flex-wrap: wrap;
+			gap: 8px 12px;
+			min-height: 0;
+			padding: 20px 0;
+
+			&.is-head {
+				display: none;
+			}
+			.c_num {
+				display: none;
+			}
+			.c_subj {
+				flex-basis: calc(100% - 32px);
+				order: -1;
+			}
+			.c_chk {
+				order: -2;
+			}
+			.c_name,
+			.c_hit,
+			.c_good,
+			.c_date {
+				flex: 0 0 auto;
+				text-align: left;
+			}
+			.c_hit::before {
+				content: "조회 ";
+			}
+		}
+		.ob_subj a.ob_subj_link {
+			font-size: 16px;
+		}
+	}
+
+	/* ---------- 페이지 번호 (그누보드 get_paging) ---------- */
+	.pg_wrap {
+		float: none;
+		display: block;
+		margin-top: 48px;
+	}
+	.pg {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		align-items: center;
+		gap: 4px;
+	}
+	.pg_page,
+	.pg_current {
+		display: inline-grid;
+		place-items: center;
+		min-width: 40px;
+		height: 40px;
+		padding: 0 8px;
+		border: 0;
+		border-radius: 8px;
+		background: none;
+		font-size: 14px;
+		line-height: 1;
+		font-weight: 500;
+		color: #888;
+		text-indent: 0;
+		transition:
+			background-color 0.2s,
+			color 0.2s;
+	}
+	.pg_page:hover {
+		background: #f4f4f4;
+		color: #222;
+	}
+	.pg_current {
+		background: #444;
+		font-weight: 700;
+		color: #fff;
+	}
+	// 처음 · 이전 · 다음 · 맨끝: 그림 대신 글자
+	.pg_start,
+	.pg_prev,
+	.pg_next,
+	.pg_end {
+		padding: 0 12px;
+		background: none;
+		font-size: 14px;
+	}
+
+	/* ---------- 글 보기 ---------- */
+	.ob_v_head {
+		padding-bottom: 32px;
+		border-bottom: 1px solid #222;
+	}
+	.ob_v_cate {
+		margin: 0 0 16px;
+	}
+	// 글 제목: We Are 설명 제목과 같은 크기 · 굵기
+	.ob_v_tit {
+		margin: 0;
+		font-size: 40px;
+		line-height: 48px;
+		font-weight: 700;
+		letter-spacing: -0.02em;
+		color: #222;
+		word-break: keep-all;
+		overflow-wrap: anywhere;
+
+		@media (max-width: 768px) {
+			font-size: 24px;
+			line-height: 32px;
+		}
+	}
+	.ob_v_meta {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px 24px;
+		margin: 24px 0 0;
+		padding: 0;
+		list-style: none;
+		font-size: 14px;
+		line-height: 1;
+		color: #888;
+
+		b {
+			margin-right: 8px;
+			font-weight: 500;
+			color: #444;
+		}
+	}
+	.ob_v_body {
+		padding: 56px 0;
+		border-bottom: 1px solid $line;
+
+		@media (max-width: 768px) {
+			padding: 40px 0;
+		}
+	}
+	// 본문 (편집기 글 포함)
+	#bo_v_con {
+		min-height: 120px;
+		font-size: 16px;
+		line-height: 28px;
+		color: #444;
+		word-break: keep-all;
+		overflow-wrap: anywhere;
+
+		img {
+			max-width: 100%;
+			height: auto;
+		}
+		a {
+			color: #222;
+			text-decoration: underline;
+			text-underline-offset: 3px;
+		}
+	}
+	#bo_v_img {
+		margin-bottom: 40px;
+
+		img {
+			display: block;
+			max-width: 100%;
+			height: auto;
+			margin-bottom: 16px;
+			border-radius: 8px;
+		}
+	}
+	#bo_v_share {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+		margin-bottom: 24px;
+
+		&:empty {
+			display: none;
+		}
+	}
+	// 추천 · 비추천
+	.ob_v_act {
+		display: flex;
+		justify-content: center;
+		gap: 8px;
+		margin-top: 56px;
+
+		a,
+		> span {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			height: 48px;
+			padding: 0 24px;
+			border-radius: 24px;
+			background: #f4f4f4;
+			font-size: 14px;
+			line-height: 1;
+			font-weight: 500;
+			color: #444;
+			transition: background-color 0.3s;
+
+			strong {
+				font-weight: 700;
+				color: #222;
+			}
+		}
+		a:hover {
+			background: #ebebeb;
+		}
+		.ob_v_act_msg {
+			display: none;
+			font-size: 14px;
+			color: #888;
+		}
+	}
+	// 첨부파일 · 관련링크
+	.ob_v_files {
+		padding: 32px 0;
+		border-bottom: 1px solid $line;
+
+		h3 {
+			margin: 0 0 16px;
+			font-size: 14px;
+			line-height: 1;
+			font-weight: 500;
+			color: #444;
+		}
+		ul {
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
+			margin: 0;
+			padding: 0;
+			list-style: none;
+		}
+		li a {
+			display: flex;
+			flex-wrap: wrap;
+			align-items: center;
+			gap: 8px 16px;
+			padding: 16px;
+			border-radius: 8px;
+			background: #f4f4f4;
+			font-size: 14px;
+			line-height: 1;
+			color: #888;
+			transition: background-color 0.3s;
+
+			&:hover {
+				background: #ebebeb;
+			}
+			strong {
+				flex: 1 1 auto;
+				min-width: 0;
+				font-size: 16px;
+				line-height: 24px;
+				font-weight: 500;
+				color: #222;
+				overflow-wrap: anywhere;
+			}
+		}
+	}
+	// 이전글 · 다음글
+	.ob_v_nb {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+
+		li {
+			border-bottom: 1px solid $line;
+		}
+		a {
+			display: flex;
+			align-items: center;
+			gap: 24px;
+			min-height: 72px;
+			padding: 16px 8px;
+			font-size: 14px;
+			line-height: 1;
+			color: #888;
+			transition: background-color 0.2s;
+
+			&:hover {
+				background: rgba(34, 34, 34, 0.02);
+			}
+		}
+		.nb_tit {
+			flex: 0 0 64px;
+			font-weight: 500;
+			color: #444;
+		}
+		.nb_subj {
+			flex: 1 1 auto;
+			min-width: 0;
+			overflow: hidden;
+			font-size: 16px;
+			line-height: 24px;
+			color: #222;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+		.nb_date {
+			flex: 0 0 auto;
+			font-variant-numeric: tabular-nums;
+		}
+	}
+	.ob_v_btns {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: space-between;
+		gap: 8px;
+		margin-top: 32px;
+	}
+
+	/* ---------- 댓글 ---------- */
+	.ob_cm {
+		margin-top: 80px;
+
+		@media (max-width: 768px) {
+			margin-top: 56px;
+		}
+	}
+	.ob_cm_tit {
+		margin: 0 0 24px;
+		font-size: 24px;
+		line-height: 1;
+		font-weight: 700;
+		color: #222;
+
+		b {
+			margin-left: 8px;
+			color: #888;
+		}
+	}
+	#bo_vc {
+		border-top: 1px solid #222;
+
+		article {
+			padding: 24px 8px;
+			border-bottom: 1px solid $line;
+		}
+	}
+	.ob_cm_hd {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 8px 16px;
+		font-size: 14px;
+		line-height: 1;
+		color: #888;
+
+		> b,
+		.sv_wrap,
+		.sv_member,
+		.sv_guest {
+			font-weight: 700;
+			color: #222;
+		}
+	}
+	.ob_cm_act {
+		display: flex;
+		gap: 16px;
+		margin-left: auto;
+	}
+	.cmt_contents {
+		margin-top: 16px;
+		font-size: 16px;
+		line-height: 28px;
+		color: #444;
+		overflow-wrap: anywhere;
+
+		p {
+			margin: 0;
+		}
+	}
+	#bo_vc_empty {
+		margin: 0;
+		padding: 64px 0;
+		border-bottom: 1px solid $line;
+		font-size: 16px;
+		line-height: 1;
+		text-align: center;
+		color: #888;
+	}
+	// 댓글 쓰기: 상담 폼과 같은 칸 + 아래 [비밀글 · 등록]
+	.bo_vc_w {
+		display: block;
+	}
+	#bo_vc_w,
+	#bo_vc article .bo_vc_w {
+		margin-top: 24px;
+	}
+	#fviewcomment {
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+
+		textarea {
+			height: 136px;
+		}
+		.ob_cm_info {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 16px;
+
+			@media (max-width: 768px) {
+				grid-template-columns: 1fr;
+			}
+			#captcha {
+				grid-column: 1 / -1;
+			}
+		}
+		.ob_cm_submit {
+			display: flex;
+			align-items: center;
+			justify-content: flex-end;
+			gap: 24px;
+		}
+		#char_cnt {
+			font-size: 14px;
+			line-height: 1;
+			font-weight: 400;
+			color: #888;
+		}
+	}
+
+	/* ---------- 글쓰기 ---------- */
+	.ob_w_grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 24px 16px;
+
+		@media (max-width: 768px) {
+			grid-template-columns: 1fr;
+		}
+	}
+	// 칸 하나: 위에 이름(16px · #444) + 아래 입력 (상담 폼 .cf_field와 같음)
+	.ob_field {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		min-width: 0;
+
+		&.is-full {
+			grid-column: 1 / -1;
+		}
+		> label,
+		.ob_field_lbl {
+			font-size: 16px;
+			line-height: 1;
+			font-weight: 500;
+			color: #444;
+		}
+	}
+	.ob_opts {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 16px 32px;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	// 제목 + 임시 저장 버튼
+	.ob_w_subj {
+		position: relative;
+		display: flex;
+		gap: 8px;
+
+		input {
+			flex: 1 1 auto;
+			min-width: 0;
+		}
+		#btn_autosave {
+			flex: 0 0 auto;
+			height: 56px;
+		}
+	}
+	#autosave_pop {
+		display: none;
+		position: absolute;
+		top: calc(100% + 8px);
+		right: 0;
+		z-index: 10;
+		width: 320px;
+		max-width: 100%;
+		padding: 16px;
+		border-radius: 8px;
+		background: #fff;
+		box-shadow:
+			0 2px 12px rgba(68, 68, 68, 0.14),
+			0 16px 40px rgba(17, 17, 17, 0.08);
+
+		strong {
+			display: block;
+			margin-bottom: 8px;
+			font-size: 14px;
+			line-height: 1;
+			font-weight: 700;
+			color: #222;
+		}
+		ul {
+			max-height: 240px;
+			margin: 0;
+			padding: 0;
+			overflow-y: auto;
+			overscroll-behavior: none;
+			list-style: none;
+		}
+		li {
+			display: flex;
+			justify-content: space-between;
+			gap: 8px;
+			padding: 8px 0;
+			border-bottom: 1px solid $line;
+			font-size: 14px;
+			line-height: 24px;
+		}
+		.autosave_close {
+			margin-top: 8px;
+			padding: 0;
+			border: 0;
+			background: none;
+			font-size: 14px;
+			color: #888;
+			text-decoration: underline;
+			cursor: pointer;
+		}
+	}
+	.wr_content {
+		textarea {
+			height: 400px;
+		}
+	}
+	#char_count_desc,
+	#char_count_wrap {
+		margin: 0;
+		font-size: 14px;
+		line-height: 1;
+		color: #888;
+	}
+	.ob_file_del {
+		font-size: 14px;
+	}
+	// 자동등록방지 (그누보드 캡챠): 칸 모양만 맞춤
+	#captcha {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 8px;
+		margin: 0;
+		padding: 0;
+		border: 0;
+
+		legend {
+			position: absolute;
+			width: 1px;
+			height: 1px;
+			overflow: hidden;
+		}
+		#captcha_img {
+			height: 56px;
+			border-radius: 8px;
+		}
+		#captcha_mp3,
+		#captcha_reload {
+			width: 56px;
+			height: 56px;
+			margin: 0;
+			border: 0;
+			border-radius: 8px;
+			background-color: #f4f4f4;
+		}
+		#captcha_key {
+			width: 160px;
+			height: 56px;
+			margin: 0;
+		}
+		#captcha_info {
+			flex-basis: 100%;
+			font-size: 14px;
+			line-height: 1;
+			color: #888;
+		}
+	}
+	.ob_w_btns {
+		display: flex;
+		gap: 8px;
+		margin-top: 48px;
+
+		.ob_btn {
+			flex: 0 0 160px;
+		}
+		.ob_btn.is-main {
+			flex: 1 1 auto;
+		}
+		@media (max-width: 480px) {
+			.ob_btn {
+				flex-basis: 96px;
+				padding: 0 16px;
+			}
+		}
+	}
+
+	/* ---------- 상담 문의 (ondoor_db 스킨, .ob_db) ----------
+	   목록: [상태 | 이름 · 연락처 | 직종 · 예산 | 문의내용 | 접수일시] — 목록만 봐도 누가 무엇을 문의했는지
+	   상세: 바로 할 일(전화 · 관리) → 고객 정보 카드 → 문의내용 → 관리 메모 */
+	// 상태 배지: 신규(진하게) · 진행(테두리) · 완료(연하게)
+	.ob_state {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		height: 28px;
+		padding: 0 12px;
+		border-radius: 14px;
+		font-size: 14px;
+		line-height: 1;
+		font-weight: 700;
+		white-space: nowrap;
+
+		&::before {
+			content: "";
+			width: 6px;
+			height: 6px;
+			border-radius: 50%;
+			background: currentColor;
+		}
+		&.is-new {
+			background: #222;
+			color: #fff;
+		}
+		&.is-ing {
+			background: #fff;
+			box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.15);
+			color: #222;
+		}
+		&.is-done {
+			background: #f4f4f4;
+			font-weight: 500;
+			color: #888;
+		}
+	}
+	// 머리의 상태별 건수
+	.ob_db_sum {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+		margin: 32px 0 0;
+		padding: 0;
+		list-style: none;
+
+		li {
+			display: flex;
+			align-items: center;
+			gap: 16px;
+			height: 56px;
+			padding: 0 24px;
+			border-radius: 8px;
+			background: #f4f4f4;
+			font-size: 14px;
+			line-height: 1;
+			font-weight: 500;
+			color: #666;
+		}
+		b {
+			font-size: 24px;
+			font-weight: 700;
+			color: #222;
+			font-variant-numeric: tabular-nums;
+		}
+		.is-new {
+			background: #222;
+			color: rgba(255, 255, 255, 0.7);
+
+			b {
+				color: #fff;
+			}
+		}
+	}
+
+	// 목록 한 줄
+	.ob_db_row {
+		align-items: center;
+		min-height: 96px;
+
+		.d_state {
+			flex: 0 0 72px;
+		}
+		// 이름 · 연락처 / 직종 · 예산 / 문의내용을 한 링크로 (줄 어디를 눌러도 상세로)
+		.d_link {
+			display: flex;
+			flex: 1 1 auto;
+			align-items: center;
+			gap: 16px;
+			min-width: 0;
+			align-self: stretch;
+		}
+		.d_who {
+			display: flex;
+			flex: 0 0 200px;
+			flex-direction: column;
+			gap: 8px;
+			min-width: 0;
+		}
+		.d_name {
+			overflow: hidden;
+			font-size: 18px;
+			line-height: 24px;
+			font-weight: 700;
+			color: #222;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+		.d_tel {
+			font-size: 14px;
+			line-height: 1;
+			color: #666;
+			font-variant-numeric: tabular-nums;
+		}
+		.d_tags {
+			display: flex;
+			flex: 0 0 240px;
+			flex-wrap: wrap;
+			gap: 4px;
+		}
+		.d_msg {
+			display: -webkit-box;
+			flex: 1 1 auto;
+			min-width: 0;
+			overflow: hidden;
+			font-size: 14px;
+			line-height: 24px;
+			color: #666;
+			-webkit-line-clamp: 2; // 두 줄까지
+			line-clamp: 2;
+			-webkit-box-orient: vertical;
+		}
+		.d_memo {
+			display: block;
+			font-style: normal;
+			color: #888;
+		}
+		.d_date {
+			display: flex;
+			flex: 0 0 104px;
+			flex-direction: column;
+			align-items: flex-end;
+			gap: 8px;
+			font-variant-numeric: tabular-nums;
+
+			small {
+				font-size: 14px;
+				color: #888;
+			}
+		}
+		// 머리 줄: 링크 없이 같은 칸 너비 (줄 사이 간격 16px이 링크 안 간격과 같아 칸이 맞음)
+		&.is-head {
+			min-height: 56px;
+
+			.d_tags,
+			.d_msg,
+			.d_who {
+				display: block;
+			}
+		}
+		// 완료된 문의는 한 단계 흐리게
+		&.is-done:not(.is-head) .d_link {
+			opacity: 0.6;
+		}
+		&:not(.is-head):hover .d_name {
+			text-decoration: underline;
+			text-underline-offset: 4px;
+		}
+	}
+	@media (max-width: 1024px) {
+		.ob_db_row .d_tags {
+			flex-basis: 160px;
+		}
+	}
+	@media (max-width: 768px) {
+		.ob_db_row {
+			flex-wrap: nowrap;
+			align-items: flex-start;
+			gap: 12px;
+			padding: 20px 0;
+
+			.d_state {
+				flex-basis: auto;
+				order: 0;
+			}
+			.d_link {
+				flex-direction: column;
+				align-items: flex-start;
+				gap: 8px;
+			}
+			.d_who {
+				flex: 0 0 auto;
+				flex-direction: row;
+				align-items: center;
+				gap: 12px;
+			}
+			.d_tags {
+				flex: 0 0 auto;
+			}
+			.d_msg:empty,
+			.d_tags:empty {
+				display: none;
+			}
+			.d_date {
+				flex: 0 0 auto;
+				gap: 4px;
+			}
+		}
+	}
+
+	// 상세: 바로 할 일
+	.ob_db_quick {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+		margin-top: 32px;
+
+		.ob_btn {
+			height: 56px;
+		}
+	}
+	// 상세: 구역 제목 (번호 라벨처럼 작게)
+	.ob_db_sec {
+		margin: 0 0 16px;
+		font-size: 14px;
+		line-height: 1;
+		font-weight: 500;
+		letter-spacing: 0.04em;
+		color: #888;
+	}
+	.ob_db_info,
+	.ob_db_msg,
+	.ob_db_note {
+		margin-top: 56px;
+
+		@media (max-width: 768px) {
+			margin-top: 40px;
+		}
+	}
+	// 고객 정보: 4칸 카드 (1024px 이하 2칸)
+	.ob_db_grid {
+		display: grid;
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		gap: 8px;
+		margin: 0;
+
+		@media (max-width: 1024px) {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+
+		> div {
+			display: flex;
+			flex-direction: column;
+			gap: 16px;
+			min-width: 0;
+			padding: 24px;
+			border-radius: 8px;
+			background: #f4f4f4;
+
+			@media (max-width: 480px) {
+				padding: 16px;
+			}
+		}
+		dt {
+			font-size: 14px;
+			line-height: 1;
+			font-weight: 500;
+			color: #888;
+		}
+		dd {
+			margin: 0;
+			font-size: 18px;
+			line-height: 24px;
+			font-weight: 700;
+			color: #222;
+			overflow-wrap: anywhere;
+			font-variant-numeric: tabular-nums;
+
+			@media (max-width: 480px) {
+				font-size: 16px;
+			}
+			a {
+				color: #222;
+				text-decoration: underline;
+				text-underline-offset: 4px;
+			}
+		}
+	}
+	// 문의내용 · 메모 상자
+	.ob_db_box {
+		min-height: 0;
+		padding: 32px;
+		border-radius: 8px;
+		box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+		font-size: 16px;
+		line-height: 28px;
+		color: #444;
+		overflow-wrap: anywhere;
+
+		@media (max-width: 768px) {
+			padding: 24px;
+		}
+		&.is-empty {
+			font-size: 14px;
+			line-height: 24px;
+			color: #888;
+		}
+	}
+	.ob_db_note .ob_db_box {
+		background: #f4f4f4;
+		box-shadow: none;
+	}
+	&.ob_db .ob_v_nb {
+		margin-top: 56px;
+		border-top: 1px solid $line;
+	}
+
+	/* ---------- 400px 이하: 글자 -2px (사이트 공통 규칙) ---------- */
+	@media (max-width: 400px) {
+		.ob_row,
+		.ob_v_meta,
+		.ob_cm_hd,
+		.pg_page,
+		.pg_current {
+			font-size: 12px;
+		}
+		.ob_subj a.ob_subj_link,
+		#bo_v_con,
+		.cmt_contents,
+		.ob_field > label,
+		.ob_btn {
+			font-size: 14px;
+		}
+		.ob_v_tit {
+			font-size: 22px;
+			line-height: 32px;
+		}
+	}
+}

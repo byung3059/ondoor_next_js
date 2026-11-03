@@ -1,0 +1,41 @@
+User-agent: *
+Disallow: /adm/
+Disallow: /lib/
+Disallow: /extend/
+Disallow: /install/
+Disallow: /data/session/
+Disallow: /data/cache/
+Disallow: /data/tmp/
+Disallow: /data/log/
+
+Disallow: /bbs/login.php
+Disallow: /bbs/logout.php
+Disallow: /bbs/register.php
+Disallow: /bbs/register_form.php
+Disallow: /bbs/register_result.php
+Disallow: /bbs/member_confirm.php
+Disallow: /bbs/member_leave.php
+Disallow: /bbs/password.php
+Disallow: /bbs/password_lost.php
+Disallow: /bbs/memo.php
+Disallow: /bbs/scrap.php
+Disallow: /bbs/point.php
+Disallow: /bbs/profile.php
+Disallow: /bbs/formmail.php
+
+Disallow: /bbs/write.php
+Disallow: /bbs/delete.php
+Disallow: /bbs/download.php
+Disallow: /bbs/good.php
+Disallow: /bbs/move.php
+Disallow: /bbs/*_update.php
+
+Disallow: /bbs/search.php
+Disallow: /bbs/new.php
+Disallow: /*?*stx=
+Disallow: /*?*sst=
+Disallow: /*?*sop=
+Disallow: /*?*spt=
+
+Sitemap: https://ondoor.co.kr/sitemap.xml
+Sitemap: https://ondoor.co.kr/blog/sitemap_index.xml

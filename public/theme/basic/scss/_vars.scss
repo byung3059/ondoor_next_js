@@ -1,0 +1,22 @@
+/* _vars.scss — 공용 변수 · 믹스인 (visual.scss · layout.scss가 @import "vars"로 씀, 이 파일은 따로 컴파일되지 않음)
+   글자색 4단계: #222 제목 · #444 부제 · #666 본문 · #888 보조 / 굵기 700 · 500 · 400 / 간격 8px 배수 / r 8px
+   한 줄로 끝나는 글자(라벨 · 버튼 · 한 줄 제목)는 line-height: 1 — 여러 줄로 흐르는 글만 줄높이(8px 배수)를 줌 */
+
+$side: 80px; // 레이아웃 양옆 여백 (1660px 초과)
+$side-md: 40px; // 1660px 이하
+$side-sm: 20px; // 768px 이하
+$bg: #000;
+$ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+$shadow-pop: 0 24px 64px rgba(17, 17, 17, 0.24);
+
+// 양옆 여백을 CSS 변수 --side로 (화면 너비에 따라 80 → 40 → 20px), 안에서 padding: 0 var(--side) 등으로 씀
+@mixin side-var {
+	--side: #{$side};
+
+	@media (max-width: 1660px) {
+		--side: #{$side-md};
+	}
+	@media (max-width: 768px) {
+		--side: #{$side-sm};
+	}
+}

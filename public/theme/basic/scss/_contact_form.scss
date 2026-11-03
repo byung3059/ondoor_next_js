@@ -1,0 +1,549 @@
+/* _contact_form.scss — 상담 문의 폼 모양 (폼 마크업은 include/contact_form.php)
+   메인 We Are의 상담 폼(visual.scss .weare .contact_form)과 오른쪽 아래 문의칸(layout.scss .cw .contact_form)이 같이 씀
+   쓰는 곳: .xxx .contact_form { @include contact-form; } — 동작(셀렉트 · 체크 · 자동등록방지 · 전송)은 js/contact_form.js
+   칸 · 선택 · 글상자 높이 8px 배수, r 8px, 글자색 4단계 */
+
+/* 상담 폼 체크박스 애니메이션 (관리자 테마 adm-check-pop · adm-check-draw와 같음) */
+@keyframes cf-check-pop {
+	0% {
+		transform: scale(0.8);
+	}
+	60% {
+		transform: scale(1.08);
+	}
+	100% {
+		transform: scale(1);
+	}
+}
+@keyframes cf-check-draw {
+	from {
+		clip-path: inset(0 100% 0 0);
+	}
+	to {
+		clip-path: inset(0 0 0 0);
+	}
+}
+// 확인 버튼 체크 (상담 신청 완료 팝업의 done-pop · done-draw와 같은 곡선, 버튼이라 덜 작게 시작)
+@keyframes t2cap-pop {
+	0% {
+		transform: scale(0.8);
+	}
+	60% {
+		transform: scale(1.06);
+	}
+	100% {
+		transform: none;
+	}
+}
+@keyframes t2cap-draw {
+	from {
+		clip-path: inset(0 100% 0 0);
+	}
+	to {
+		clip-path: inset(0 0 0 0);
+	}
+}
+
+@mixin contact-form {
+	// 자동 등록 방지용 숨김 칸
+	.cf_hp {
+		position: absolute;
+		left: -9999px;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+	}
+	.cf_grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 24px 16px;
+	}
+	.cf_field {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		min-width: 0;
+
+		&.is-full {
+			grid-column: 1 / -1;
+		}
+		label {
+			font-size: 16px;
+			line-height: 1;
+			font-weight: 500;
+			color: #444;
+		}
+	}
+	// 모든 입력 칸(글 · 연락처 · 직접 입력 · 선택 · 글상자): 관리자 테마(extend/adm_theme)와 같은 방식
+	// 테두리 없음, 평소 연회색 배경 → 포커스하면 흰 배경 + 그림자(#444의 14% 번짐 + 4px 4% 고리), 0.16초
+	input[type="text"],
+	input[type="tel"],
+	select,
+	textarea {
+		width: 100%;
+		height: 56px;
+		padding: 0 16px;
+		border: 0;
+		border-radius: 8px;
+		background-color: #f4f4f4 !important;
+		font-size: 16px;
+		line-height: 24px;
+		color: #222;
+		outline: none;
+		transition-property: box-shadow, background-color;
+		transition-duration: 0.16s;
+		transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+		-webkit-appearance: none;
+		appearance: none;
+
+		&::placeholder {
+			color: #888;
+		}
+		&:focus,
+		&:focus-visible {
+			outline: none;
+			background-color: #fff !important;
+			box-shadow:
+				0 2px 12px rgba(68, 68, 68, 0.14),
+				0 0 0 4px rgba(68, 68, 68, 0.04);
+		}
+	}
+	// 저장된 값 자동 채움(파란 배경) 색은 scss/layout.scss에서 모든 페이지 공통으로 되돌림
+	// 직종 · 예산 "직접 입력" 칸: 선택했을 때만 보임 (js가 .is-etc)
+	.cf_etc {
+		display: none;
+	}
+	.is-etc .cf_etc {
+		display: block;
+	}
+	select {
+		padding-right: 40px;
+		// 화살표는 배경 이미지로 (배경색은 위 공통 규칙이 평소 · 포커스에 맞춰 바꿈)
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+		background-repeat: no-repeat;
+		background-position: right 16px center;
+		background-size: 16px;
+		cursor: pointer;
+
+		&:invalid {
+			color: #888; // "선택해 주세요" 상태
+		}
+	}
+	textarea {
+		height: 160px;
+		padding: 16px;
+		resize: vertical;
+	}
+
+	// 셀렉트 박스 커스텀 (js/weare.js가 만듦) — 원래 select는 값 저장 · 필수 검사(안내 말풍선 위치)용으로 같은 자리에 투명하게 겹쳐 둠
+	.cf_select {
+		position: relative;
+
+		select {
+			position: absolute;
+			inset: 0;
+			opacity: 0;
+			pointer-events: none;
+		}
+	}
+	// 버튼: 다른 입력 칸과 같은 모양 · 포커스, 오른쪽 화살표는 열리면 뒤집힘
+	.cf_select_btn {
+		position: relative;
+		display: flex;
+		align-items: center;
+		width: 100%;
+		height: 56px;
+		padding: 0 48px 0 16px;
+		border-radius: 8px;
+		background-color: #f4f4f4;
+		font-size: 16px;
+		line-height: 1;
+		color: #222;
+		text-align: left;
+		outline: none;
+		transition-property: box-shadow, background-color;
+		transition-duration: 0.16s;
+		transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+
+		&::after {
+			content: "";
+			position: absolute;
+			top: 50%;
+			right: 16px;
+			width: 16px;
+			height: 16px;
+			margin-top: -8px;
+			background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") center / contain no-repeat;
+			transition: transform 0.3s $ease-out;
+		}
+		&.is-empty {
+			color: #888; // "선택해 주세요"
+		}
+		&:focus-visible {
+			background-color: #fff;
+			box-shadow:
+				0 2px 12px rgba(68, 68, 68, 0.14),
+				0 0 0 4px rgba(68, 68, 68, 0.04);
+		}
+	}
+	.cf_select.is-open .cf_select_btn {
+		background-color: #fff;
+		box-shadow:
+			0 2px 12px rgba(68, 68, 68, 0.14),
+			0 0 0 4px rgba(68, 68, 68, 0.04);
+
+		&::after {
+			transform: rotate(180deg);
+		}
+	}
+	// 목록: 버튼 아래 8px에 흰 상자로 나타남 (길면 안에서 스크롤)
+	.cf_select_list {
+		position: absolute;
+		top: calc(100% + 8px);
+		left: 0;
+		right: 0;
+		z-index: 10;
+		max-height: 288px;
+		padding: 8px;
+		border-radius: 8px;
+		background: #fff;
+		box-shadow:
+			0 2px 12px rgba(68, 68, 68, 0.14),
+			0 16px 40px rgba(17, 17, 17, 0.08);
+		overflow-y: auto;
+		overscroll-behavior: none;
+		opacity: 0;
+		visibility: hidden;
+		transform: translateY(-8px);
+		transition:
+			opacity 0.2s,
+			transform 0.3s $ease-out,
+			visibility 0s 0.3s;
+
+		li {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 8px;
+			height: 48px;
+			padding: 0 16px;
+			border-radius: 4px;
+			font-size: 16px;
+			line-height: 1;
+			color: #444;
+			cursor: pointer;
+
+			&.is-active {
+				background: #f4f4f4;
+			}
+			// 고른 항목: 굵게 + 오른쪽 체크
+			&[aria-selected="true"] {
+				font-weight: 700;
+				color: #222;
+
+				&::after {
+					content: "";
+					flex: 0 0 auto;
+					width: 16px;
+					height: 16px;
+					background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23222' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center / contain no-repeat;
+				}
+			}
+		}
+	}
+	.cf_select.is-open .cf_select_list {
+		opacity: 1;
+		visibility: visible;
+		transform: none;
+		transition:
+			opacity 0.2s,
+			transform 0.3s $ease-out,
+			visibility 0s;
+	}
+
+	// 개인정보 동의: 관리자 테마(extend/adm_theme)의 체크박스와 같은 디자인 · 애니메이션
+	// 체크박스 크기 = 글자 크기 (20px : 20px)
+	.cf_agree {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		margin-top: 32px;
+		font-size: 20px;
+		line-height: 1;
+		color: #444;
+		label {
+			cursor: pointer;
+		}
+		b {
+			font-weight: 700;
+			color: #222;
+		}
+		a {
+			font-size: 16px;
+			color: #888;
+			text-decoration: underline;
+			text-underline-offset: 3px;
+		}
+	}
+	input[type="checkbox"] {
+		-webkit-appearance: none;
+		appearance: none;
+		position: relative;
+		display: inline-grid;
+		place-items: center;
+		flex: 0 0 auto;
+		width: 1em; // 옆 글자 크기와 1:1 (24px, 768px 이하 20px)
+		height: 1em;
+		margin: 0;
+		padding: 0;
+		border: 0;
+		border-radius: 50%;
+		background: #ddd;
+		cursor: pointer;
+		transition:
+			background-color 0.2s cubic-bezier(0.2, 0, 0, 1),
+			transform 0.2s cubic-bezier(0.2, 0, 0, 1);
+
+		// 체크 표시 (꺼짐: 연한 회색 · 켜짐: 흰색)
+		&::after {
+			content: "";
+			width: 0.625em; // 체크 표시: 상자의 62.5%
+			height: 0.625em;
+			background: #fff;
+			-webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center/contain no-repeat;
+			mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center/contain no-repeat;
+		}
+		&:active {
+			transform: scale(0.88);
+		}
+		&:checked {
+			background: #444;
+
+			&::after {
+				background: #fff;
+			}
+		}
+		&.is-toggled:checked {
+			animation: cf-check-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+			&::after {
+				animation: cf-check-draw 0.28s cubic-bezier(0.65, 0, 0.35, 1) 0.06s both;
+			}
+		}
+		&:focus {
+			outline: none;
+		}
+		&:focus-visible {
+			box-shadow: 0 2px 12px rgba(68, 68, 68, 0.14);
+		}
+	}
+
+	// 상담 신청 버튼: 전체 폭 · 높이 72px · 글자 20px, 배경 #444 → 마우스를 올리면 #111
+	.cf_btn {
+		width: 100%;
+		height: 72px;
+		margin-top: 32px;
+		border: 0;
+		border-radius: 8px;
+		background: #444;
+		font-size: 20px;
+		line-height: 1;
+		font-weight: 700;
+		color: #fff;
+		cursor: pointer;
+		transition: background-color 0.3s;
+
+		&:hover,
+		&:focus-visible {
+			background: #111;
+		}
+		&:disabled {
+			opacity: 0.5;
+			cursor: wait;
+		}
+	}
+	.cf_msg {
+		min-height: 24px;
+		margin: 16px 0 0;
+		font-size: 14px;
+		line-height: 24px;
+		color: #888;
+
+		display: none;
+		&.is-ok {
+			color: #222;
+		}
+		&.is-err {
+			color: #d64545;
+		}
+	}
+
+	// 폼 아래 정책 링크
+	.cf_links {
+		display: flex;
+		gap: 16px;
+		margin: 8px 0 0;
+		font-size: 14px;
+		line-height: 1;
+
+		a {
+			color: #888;
+			transition: color 0.2s;
+
+			&:hover {
+				color: #222;
+			}
+		}
+	}
+
+	// 자동등록방지 (t2CAPTCHA 문제 풀기) — 문의내용 아래 칸 하나, 다른 칸과 같은 모양 (높이 56px · r 8px · 연회색 배경)
+	// 제목 옆에 "새로고침" 글자 버튼, 한 줄: [문제(남은 폭) | 정답 칸 200px | 확인], 768px 이하는 문제가 윗줄 전체 · 아래 줄에 정답 칸 + 버튼
+	// 통과하면(.is-ok) 정답 칸이 잠기고 확인 버튼이 체크 표시로
+	.t2cap {
+		margin-top: 24px;
+
+		.t2cap_head {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+		}
+
+		.t2cap_row {
+			display: flex;
+			gap: 8px;
+
+			@media (max-width: 768px) {
+				flex-wrap: wrap;
+			}
+		}
+		// 문제: 칸 모양 상자 안에 굵게 (긴 패턴 문제는 두 줄까지)
+		.t2cap_q {
+			display: flex;
+			flex: 1 1 auto;
+			align-items: center;
+			min-width: 0;
+			min-height: 56px;
+			margin: 0;
+			padding: 8px 16px;
+			border-radius: 8px;
+			background: #f4f4f4;
+			font-size: 16px;
+			line-height: 24px;
+			font-weight: 700;
+			color: #222;
+			word-break: keep-all;
+
+			@media (max-width: 768px) {
+				flex-basis: 100%;
+			}
+		}
+		.t2cap_answer {
+			flex: 0 0 200px;
+			min-width: 0;
+
+			@media (max-width: 768px) {
+				flex: 1 1 auto;
+			}
+			&:disabled {
+				color: #888;
+			}
+		}
+		.t2cap_check {
+			flex: 0 0 auto;
+			height: 56px;
+			padding: 0 24px;
+			border-radius: 8px;
+			background: #444;
+			font-size: 16px;
+			line-height: 1;
+			font-weight: 700;
+			color: #fff;
+			transition: background-color 0.3s;
+
+			&:hover:not(:disabled),
+			&:focus-visible {
+				background: #111;
+			}
+			&:disabled {
+				opacity: 0.5;
+				cursor: default;
+			}
+		}
+		// 새 문제 받기: 글자 버튼 (개인정보처리방침 "보기"와 같음)
+		.t2cap_refresh {
+			padding: 0;
+			background: none;
+			font-size: 16px;
+			line-height: 1;
+			color: #888;
+			text-decoration: underline;
+			text-underline-offset: 3px;
+			cursor: pointer;
+		}
+		// 안내 (확인 중 · 확인됨 · 틀림) — 글이 없으면 자리도 없음
+		.t2cap_msg {
+			margin: 8px 0 0;
+			font-size: 14px;
+			line-height: 1;
+			color: #888;
+
+			&:empty {
+				display: none;
+			}
+			&.is-err {
+				color: #d64545;
+			}
+			// 통과 안내("확인되었습니다.")는 글자 대신 제목 앞 체크 표시로 — 화면 읽기 프로그램용으로만 남김
+			&.is-ok {
+				position: absolute;
+				width: 1px;
+				height: 1px;
+				margin: 0;
+				overflow: hidden;
+				clip: rect(0 0 0 0);
+			}
+		}
+		// 통과하면 [확인] 버튼 칸이 체크 표시로 바뀜 — 상담 신청 완료 팝업의 체크 아이콘과 같은 애니메이션
+		// (버튼이 진하게(#222) 튀어나오고 → 흰 체크가 왼쪽부터 그려짐, "완료" 글자는 화면 읽기용으로만 남기고 투명)
+		.t2cap_check {
+			position: relative;
+
+			&::after {
+				content: "";
+				position: absolute;
+				top: 50%;
+				left: 50%;
+				width: 24px;
+				height: 24px;
+				margin: -12px 0 0 -12px;
+				background: #fff;
+				-webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center / contain no-repeat;
+				mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center / contain no-repeat;
+				opacity: 0;
+			}
+		}
+		// 확인 중: 버튼이 반투명으로 깜빡이지 않게 모양 그대로 (기다리는 커서만)
+		&.is-checking .t2cap_check:disabled {
+			opacity: 1;
+			cursor: wait;
+		}
+		&.is-ok .t2cap_check:disabled {
+			opacity: 1;
+			background: #222;
+			color: transparent; // 글자 자리(너비)는 그대로, 보이는 건 체크만
+			animation: t2cap-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+			&::after {
+				opacity: 1;
+				animation: t2cap-draw 0.4s cubic-bezier(0.65, 0, 0.35, 1) 0.2s both;
+			}
+		}
+	}
+
+	// 480px 이하: 한 줄에 한 칸
+	@media (max-width: 480px) {
+		.cf_grid {
+			grid-template-columns: 1fr;
+		}
+	}
+}

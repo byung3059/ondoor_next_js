@@ -1,0 +1,18 @@
+{
+    "id": "./",
+    "name": "Ondoor - 온도어",
+    "short_name": "Ondoor",
+    "description": "Ondoor(온도어)는 기업·브랜드·쇼핑몰·랜딩페이지 등 종합 홈페이지 기획, 디자인, 퍼블리싱, 개발부터 SEO·GEO 최적화와 유지보수까지 제공하는 웹에이전시입니다.",
+    "lang": "ko-KR",
+    "dir": "ltr",
+    "start_url": "./",
+    "scope": "./",
+    "display": "standalone",
+    "background_color": "#000000",
+    "theme_color": "#000000",
+    "icons": [
+        { "src": "theme/basic/img/pwa/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+        { "src": "theme/basic/img/pwa/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+        { "src": "theme/basic/img/pwa/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    ]
+}

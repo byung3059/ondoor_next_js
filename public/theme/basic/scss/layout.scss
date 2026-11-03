@@ -1,0 +1,1450 @@
+/* layout.scss — 모든 페이지 공통 (tail.php에서 scss/layout.min.css로 불러옴)
+   푸터 · 정책 팝업(include/privacy.php · terms.php) — 글자색 4단계(#222 · #444 · #666 · #888), 간격 8px 배수, r 8px
+   동작: js/layout.js */
+
+/* Paperlogy 폰트 (모든 페이지) — 글꼴 지정은 css/default.css의 body · 폼 요소에서 한 번에 */
+@import url("https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy.css");
+@import "vars"; // 공용 변수 · 믹스인 (_vars.scss)
+@import "contact_form"; // 상담 폼 모양 (_contact_form.scss — 오른쪽 아래 문의칸)
+
+// 스크롤바 · 글자 드래그(선택) 색은 css/default.css로 옮김 (layout.css가 없는 로그인 등 모든 페이지에 적용되게)
+
+// 페이지 바탕 = 푸터색, 서브 페이지 본문 흰 바탕은 #wrap.is-sub(head.php)이 맡음
+// iOS 26 사파리는 페이지 끝에서 아래 주소창 뒤를 html 위에 body 배경을 겹친 색으로 칠함 → body가 흰색(css/default.css)이면 검정 푸터 밑에 흰 띠가 생겼음
+// (푸터가 있는 페이지만 이 파일을 불러옴 — 로그인 등은 body 흰색 그대로, 메인은 visual.scss도 검정 · #wrap 투명이라 고정 캔버스가 비침)
+html,
+body {
+	background: $bg;
+}
+#wrap.is-sub {
+	display: flow-root; // 안쪽 첫 · 마지막 요소의 margin이 밖으로 빠져 위아래에 검정 바탕이 드러나지 않게
+	background: #fff;
+}
+
+/* ---------- 저장된 값 자동 채움 ----------
+   브라우저가 저장된 이름 · 연락처 등을 채우면 칸이 연파랑으로 바뀜 → 원래 칸 색(#f4f4f4 · 글자 #222)으로
+   (배경색은 브라우저가 강제로 덮어써서 안쪽 그림자로 칠함, 포커스하면 흰 배경 + 칸 포커스 그림자) */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+	// !important: 상담 폼 · 게시판 칸 규칙(box-shadow: none · 포커스 그림자)이 선택자가 더 길어서 이걸 덮지 않게
+	-webkit-text-fill-color: #222 !important;
+	caret-color: #222;
+	-webkit-box-shadow: 0 0 0 1000px #f4f4f4 inset !important;
+	box-shadow: 0 0 0 1000px #f4f4f4 inset !important;
+	transition: background-color 600000s 0s; // 브라우저 기본 배경색이 보이지 않게 (사실상 바뀌지 않음)
+}
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill:focus {
+	-webkit-box-shadow:
+		0 0 0 1000px #fff inset,
+		0 2px 12px rgba(68, 68, 68, 0.14),
+		0 0 0 4px rgba(68, 68, 68, 0.04) !important;
+	box-shadow:
+		0 0 0 1000px #fff inset,
+		0 2px 12px rgba(68, 68, 68, 0.14),
+		0 0 0 4px rgba(68, 68, 68, 0.04) !important;
+}
+
+/* ---------- 헤더 ----------
+   화면 위에 고정된 로고(include/logo_txt.php) + 메뉴 버튼(include/menu_txt.php) — 둘 다 글자 하나하나가 SVG path
+   - 색: 평소 흰색, 흰 배경 구간 위에선(.is-light, js/layout.js) 로고 · MENU가 같이 왼쪽부터 한 글자씩 #444로 채워짐
+   - 등장: 메인 인트로가 끝나면(끝까지 보거나 클릭해서 건너뛰거나) 로고 · MENU가 같이 한 글자씩 아래에서 올라오며 나타남 */
+#hd {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	z-index: 100; // 섹션 · 푸터보다 위, 정책 팝업(200)보다 아래
+	display: flex;
+	align-items: center;
+	justify-content: space-between; // 왼쪽 로고 · 오른쪽 메뉴 버튼
+	height: 96px;
+	padding: 0 $side;
+	pointer-events: none; // 아래 내용 클릭을 막지 않게 (로고 · 메뉴 버튼만 클릭)
+
+	@media (max-width: 1660px) {
+		padding: 0 $side-md;
+	}
+	@media (max-width: 768px) {
+		height: 72px;
+		padding: 0 $side-sm;
+	}
+	@media (max-width: 480px) {
+		height: 56px;
+	}
+
+	.hd_logo {
+		display: block;
+		line-height: 0;
+		pointer-events: auto;
+
+		svg {
+			display: block;
+			width: auto;
+			height: 24px;
+
+			@media (max-width: 768px) {
+				height: 18px;
+			}
+		}
+	}
+
+	// 메뉴 버튼: 로고와 같은 서체로 그린 MENU (include/menu_txt.php SVG, 로고와 같은 색: 평소 흰색 · 흰 배경 구간 #444)
+	// 열리면 MENU가 위로 빠지고 CLOSE가 아래에서 올라옴 (마스크 안에서)
+	.hd_menu {
+		display: flex;
+		align-items: center;
+		height: 48px;
+		margin-right: -8px;
+		padding: 0 8px;
+		color: #fff;
+		pointer-events: auto;
+		transition: color 0.5s $ease-out;
+		// 버튼을 따로 한 층으로 그려 둠 — 아이폰 사파리가 스크롤 · 주소창 접힘 뒤 고정 헤더를 다시 그릴 때 MENU만 빠뜨리지 않게
+		transform: translateZ(0);
+	}
+	// 두 글자를 한 칸에 겹쳐 오른쪽 끝 맞춤 (칸 너비 = 더 긴 CLOSE, 버튼 크기가 바뀌지 않음)
+	.hd_menu_txt {
+		display: grid;
+		justify-items: end;
+		overflow: hidden;
+		height: 14px; // 글자 높이 (로고 24px의 약 60%)
+
+		@media (max-width: 768px) {
+			height: 12px;
+		}
+	}
+	.hd_menu_svg {
+		grid-area: 1 / 1;
+		display: block;
+		width: auto;
+		height: 100%;
+		transition: transform 0.5s $ease-out;
+
+		// CLOSE: 아래에 숨어 있다가 열리면 올라옴
+		&.is-close {
+			transform: translateY(110%);
+		}
+	}
+	.hd_menu[aria-expanded="true"] .hd_menu_svg {
+		&.is-menu {
+			transform: translateY(-110%);
+		}
+		&.is-close {
+			transform: none;
+		}
+	}
+
+	// 로고 · MENU 글자(path) 공통: 색 바뀜 · 등장 모두 글자마다 조금씩 늦게(--d) → 왼쪽부터 차례로
+	// 로고 1 ~ 6번째 글자와 MENU(CLOSE) 1 ~ 5번째 글자가 같은 순서 · 같은 시각에 함께 움직임
+	// (MENU 글자의 가로 위치는 글자를 감싼 <g transform>이 맡음 — path에 transform 속성이 있으면 아래 CSS transform이 덮어써서 글자가 왼쪽에 몰렸다 펼쳐짐)
+	path {
+		fill: #fff;
+		transform-box: fill-box; // 글자마다 자기 자리 기준으로 올라옴
+		transition:
+			fill 0.5s $ease-out var(--d, 0s),
+			opacity 0.6s $ease-out var(--d, 0s),
+			transform 0.9s $ease-out var(--d, 0s);
+	}
+	@for $i from 1 through 6 {
+		.hd_logo path:nth-child(#{$i}),
+		.hd_menu_svg > :nth-child(#{$i}) {
+			--d: #{($i - 1) * 0.06}s; // MENU는 <g>에 주면 안의 path가 물려받음
+		}
+	}
+	&.is-light path {
+		fill: #444;
+	}
+
+	// 흰 배경 구간 · 서브 페이지(.is-light): 헤더 뒤 내용을 가림 — PC는 4px 흐림, 터치 기기는 반투명 흰색
+	// #hd에 직접 주면 backdrop-filter가 안의 position: fixed(모바일 메뉴 화면 .gnb) 기준을 헤더로 바꿔 메뉴가 헤더 높이에 갇힘 → ::before에 줌
+	// 터치 기기에 흐림(backdrop-filter)을 쓰지 않는 이유: 아이폰 사파리가 흐림 층 위의 고정 헤더 글자를 다시 그리지 않아,
+	// 흐림이 늘 켜진 서브 페이지 · 블로그 글에서 MENU 버튼이 사라졌다가 다른 곳을 터치해야 다시 보였음
+	&::before {
+		content: "";
+		position: absolute;
+		inset: 0;
+		z-index: -1; // 로고 · MENU 뒤
+		background: rgba(255, 255, 255, 0.86);
+		opacity: 0;
+		transition: opacity 0.5s $ease-out;
+		pointer-events: none;
+
+		@media (hover: hover) and (pointer: fine) {
+			background: none;
+			-webkit-backdrop-filter: blur(4px);
+			backdrop-filter: blur(4px);
+		}
+	}
+	&.is-light::before {
+		opacity: 1;
+	}
+
+	// 아이폰(iOS 26~) 사파리 · 홈 화면 앱: 화면 맨 위에 붙은 불투명 고정 요소가 없으면 iOS가 상태바 쪽에 뒤 내용을 흐리게 비쳐 보여 줌
+	// → 페이지 배경색 띠를 맨 위에 깔아 흐림 대신 그 색으로 칠하게 함 (가로 80% · 높이 6px 이상, ::before 같은 가상 요소는 안 됨)
+	// 메뉴 화면(.gnb)이 열리면 그 아래에 가려짐
+	.hd_edge {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		height: 8px;
+		background: $bg;
+		transition: background-color 0.5s $ease-out;
+	}
+	&.is-light .hd_edge {
+		background: #fff; // 흰 배경 구간 · 서브 페이지
+	}
+	// PC(마우스)에선 필요 없고 화면 맨 위에 검은 줄로 보여서 숨김 — 터치 기기(아이폰 등)에만 깔림
+	@media (hover: hover) and (pointer: fine) {
+		.hd_edge {
+			display: none;
+		}
+	}
+}
+// 메인 인트로 동안: 로고 · MENU 글자는 아래로 내려가 숨어 있음 → 인트로가 끝나 intro-lock이 풀리면 한 글자씩 함께 아래에서 올라옴
+html.intro-lock #hd path {
+	opacity: 0;
+	transform: translateY(80%);
+	transition: none;
+}
+
+// 글자 굴리기 (메뉴 카드, js/layout.js가 한 글자씩 <i data-ch>로 나눔)
+// 마우스를 올리면 글자가 차례로(--i) 위로 빠지고, 같은 글자(::after)가 아래에서 올라옴
+.gnb .roll {
+	display: inline-flex;
+	overflow: hidden;
+	vertical-align: top;
+
+	i {
+		position: relative;
+		display: inline-block;
+		font-style: normal;
+		transition: transform 0.5s $ease-out calc(var(--i) * 0.025s);
+
+		&::after {
+			content: attr(data-ch);
+			position: absolute;
+			left: 0;
+			top: 100%;
+		}
+	}
+}
+// 마우스가 있는 기기에서만 (휴대폰은 누르면 :hover가 남아서 글자가 위로 빠진 채 사라져 보임)
+@media (hover: hover) and (pointer: fine) {
+	.gnb a:hover .roll i {
+		transform: translateY(-100%);
+	}
+}
+// 메인 인트로 동안은 로고 · 메뉴를 누를 수 없음 (글자는 위 html.intro-lock #hd path로 숨김)
+html.intro-lock #hd {
+	.hd_logo,
+	.hd_menu {
+		pointer-events: none;
+	}
+}
+
+/* ---------- 메뉴 카드 (#gnb, head.php · js/layout.js) ----------
+   메뉴 버튼 바로 아래 오른쪽에 카드 3장이 차례로 내려옴 (위에서 살짝 내려오며 나타남, 닫으면 반대)
+   ① 흰 카드 — 메뉴 3개 (큰 대문자, 지금 보고 있는 위치에 오른쪽 점)
+   ② 검정 카드 — CONTACT · 프로젝트 상담 문의 → (상담 문의로 이동)
+   ③ 검정 카드 — BLOG · 인사이트 · 칼럼 → */
+$gnb-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 12h16M14 6l6 6-6 6'/%3E%3C/svg%3E");
+
+.gnb {
+	position: absolute;
+	top: calc(100% - 16px);
+	right: $side;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	width: 400px;
+	pointer-events: auto;
+
+	&[hidden] {
+		display: none;
+	}
+	@media (max-width: 1660px) {
+		right: $side-md;
+	}
+	// 모바일: 전체 화면 — 검정 화면이 덮이고 그 위에 카드가 차례로 내려옴 (로고 · CLOSE는 위에 흰색으로, 아래 html.is-menu 참고)
+	@media (max-width: 768px) {
+		position: fixed;
+		inset: 0;
+		width: auto;
+		padding: 88px $side-sm 24px; // 위: 헤더 높이 72px + 16px
+		background: $bg;
+		overflow-y: auto;
+		overscroll-behavior: none;
+		opacity: 0;
+		transition: opacity 0.3s;
+	}
+	@media (max-width: 480px) {
+		padding-top: 72px; // 헤더 높이 56px + 16px
+	}
+}
+@media (max-width: 768px) {
+	// 메뉴가 열린 동안 뒤 페이지 스크롤은 js/layout.js가 터치로 막음
+	// (html에 overflow: hidden을 켰다 끄면 아이폰 사파리가 고정 헤더를 다시 그리지 않아, 닫은 뒤 MENU가 터치 전까지 안 보였음)
+	html.is-menu .gnb {
+		opacity: 1;
+	}
+	// 로고 · 메뉴 버튼을 검정 메뉴 화면 위에 흰색으로 (메뉴는 #hd 안에서 로고 · 버튼보다 뒤에 있어 순서를 올려 줌)
+	#hd .hd_logo,
+	#hd .hd_menu {
+		position: relative;
+		z-index: 1;
+	}
+	html.is-menu #hd path {
+		fill: #fff;
+	}
+	// 메뉴를 열고 닫는 동안(.is-menu-out = 닫히는 중, js/layout.js)은 글자색을 한 글자씩 늦추지 않고 검정 화면과 같은 0.3초에 한꺼번에
+	// (늦추면 열 때는 #444 글자가 검정 위에, 닫을 때는 흰 글자가 흰 바탕 위에 잠깐 남아 로고 · MENU가 사라졌다 나타나 보임)
+	html.is-menu #hd path,
+	html.is-menu-out #hd path {
+		transition:
+			fill 0.3s,
+			opacity 0.6s $ease-out,
+			transform 0.9s $ease-out;
+	}
+}
+// 카드 공통: 흰 바탕 · r 8px · 그림자, 차례로(--n) 내려오며 나타남
+.gnb_card {
+	display: block;
+	border-radius: 8px;
+	background: #fff;
+	box-shadow: 0 16px 40px rgba(17, 17, 17, 0.16);
+	color: #222;
+	opacity: 0;
+	transform: translateY(-16px) scale(0.98);
+	transform-origin: top right;
+	transition:
+		opacity 0.2s,
+		transform 0.3s $ease-out;
+
+	@for $i from 1 through 3 {
+		&:nth-child(#{$i}) {
+			--n: #{$i - 1};
+		}
+	}
+}
+html.is-menu .gnb_card {
+	opacity: 1;
+	transform: none;
+	transition:
+		opacity 0.4s calc(var(--n) * 0.07s),
+		transform 0.7s $ease-out calc(var(--n) * 0.07s);
+}
+
+// ① 메뉴: 큰 대문자 4줄, 지금 위치 · 마우스를 올린 줄에 오른쪽 점
+.gnb_menu {
+	padding: 24px 32px;
+
+	ul {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	a {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 16px;
+		padding: 12px 0;
+		font-size: 28px;
+		line-height: 1;
+		font-weight: 700;
+		text-transform: uppercase;
+		color: #222;
+
+		&::after {
+			content: "";
+			flex: 0 0 auto;
+			width: 8px;
+			height: 8px;
+			border-radius: 50%;
+			background: #222;
+			transform: scale(0);
+			transition: transform 0.4s $ease-out;
+		}
+	}
+	.is-current a::after {
+		transform: scale(1);
+	}
+	// 마우스를 올리면 그 줄에만 점 (지금 위치 점은 잠깐 꺼짐) — 마우스 기기만
+	@media (hover: hover) and (pointer: fine) {
+		ul:hover li a::after {
+			transform: scale(0);
+		}
+		ul:hover li a:hover::after {
+			transform: scale(1);
+		}
+	}
+}
+
+// ② CONTACT · ③ BLOG: 같은 검정 카드 — 큰 대문자 + 한글 설명 + 오른쪽 화살표
+//   CONTACT · BLOG 둘 다 → (올리면 오른쪽으로)
+.gnb_link {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	height: 88px;
+	padding: 0 32px;
+	background: #151515;
+	color: #fff;
+
+	.gnb_link_txt {
+		display: flex;
+		align-items: baseline;
+		gap: 16px;
+		min-width: 0;
+	}
+	b {
+		font-size: 28px;
+		line-height: 1;
+		font-weight: 700;
+		text-transform: uppercase;
+	}
+	small {
+		font-size: 14px;
+		line-height: 1;
+		color: rgba(255, 255, 255, 0.5);
+		white-space: nowrap;
+	}
+	> i {
+		flex: 0 0 auto;
+		width: 20px;
+		height: 20px;
+		background: #fff;
+		-webkit-mask: $gnb-arrow center / contain no-repeat;
+		mask: $gnb-arrow center / contain no-repeat;
+		transition: transform 0.4s $ease-out;
+	}
+	@media (hover: hover) and (pointer: fine) {
+		&:hover > i {
+			transform: translateX(4px);
+		}
+	}
+}
+
+// 모바일 전체 화면 메뉴: 메뉴 카드는 크게(글자 32px), 그림자는 검정 바탕이라 뺌
+@media (max-width: 768px) {
+	.gnb_card {
+		box-shadow: none;
+	}
+	.gnb_menu {
+		padding: 16px 24px;
+
+		a {
+			padding: 16px 0;
+			font-size: 32px;
+		}
+	}
+	.gnb_link {
+		height: 80px;
+		padding: 0 24px;
+
+		b {
+			font-size: 24px;
+		}
+	}
+}
+@media (max-width: 400px) {
+	.gnb_menu a {
+		font-size: 28px;
+	}
+}
+
+/* ---------- 오른쪽 아래 상담 문의 (.cw, tail.php · js/contact_form.js) ----------
+   동그란 버튼(계속 도는 선 도형 ↔ X) → 버튼 위로 흰 상자가 오른쪽 아래를 기준으로 커지며 펼쳐짐 (채널톡처럼)
+   상자 안 폼은 메인 하단 상담 폼과 같은 모양(_contact_form.scss), 좁아서 한 줄에 한 칸
+   768px 이하: 상자가 화면 가득 (닫기는 위 X), 메인 인트로 · 첫 화면 스크롤 안내가 보이는 동안 · 모바일 메뉴가 열린 동안은 숨김 */
+$cw-close: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M6 6l12 12M18 6L6 18'/%3E%3C/svg%3E");
+$cw-spring: cubic-bezier(0.34, 1.3, 0.64, 1); // 살짝 넘쳤다 제자리 (펼쳐질 때)
+
+.cw {
+	position: fixed;
+	right: 24px;
+	bottom: 24px;
+	z-index: 150; // 헤더(100)보다 위, 정책 · 완료 팝업(200)보다 아래
+	pointer-events: none; // 빈 자리는 아래 페이지 클릭을 막지 않게
+	transition:
+		opacity 0.3s,
+		visibility 0s;
+
+	> * {
+		pointer-events: auto;
+	}
+}
+// 메인 인트로 동안 · 메인 첫 화면에서 스크롤 안내 꺾쇠가 보이는 동안(is-hint — index.php · visual.js, 열려 있으면 제외) · 모바일 메뉴가 열린 동안은 숨김
+html.intro-lock .cw,
+html.is-hint .cw:not(.is-open),
+html.is-menu .cw {
+	opacity: 0;
+	visibility: hidden;
+	transition:
+		opacity 0.3s,
+		visibility 0s 0.3s;
+}
+
+// 버튼: #222 동그라미 + 흰 아이콘 (말풍선 → 열리면 돌면서 X)
+.cw_btn {
+	position: relative;
+	display: block;
+	width: 64px;
+	height: 64px;
+	border-radius: 50%;
+	background: #222;
+	box-shadow:
+		0 8px 24px rgba(17, 17, 17, 0.24),
+		0 2px 6px rgba(17, 17, 17, 0.12);
+	-webkit-tap-highlight-color: transparent;
+	transition:
+		background-color 0.3s,
+		transform 0.3s $cw-spring;
+
+	@media (hover: hover) and (pointer: fine) {
+		&:hover {
+			background: #111;
+			transform: scale(1.06);
+		}
+	}
+	&:active {
+		transform: scale(0.94);
+	}
+}
+.cw_ico {
+	position: absolute;
+	inset: 0;
+	width: 32px;
+	height: 32px;
+	margin: auto;
+	background: #fff;
+	transition:
+		opacity 0.25s,
+		transform 0.45s $cw-spring;
+
+	// 선 도형 (js가 SVG를 넣고 계속 돌림 — 흰 선 · 꼭짓점 점, 뒤쪽 선은 흐리게)
+	&.is-fig {
+		width: 40px;
+		height: 40px;
+		background: none;
+
+		svg {
+			display: block;
+			width: 100%;
+			height: 100%;
+		}
+	}
+	&.is-close {
+		width: 24px;
+		height: 24px;
+		-webkit-mask: $cw-close center / contain no-repeat;
+		mask: $cw-close center / contain no-repeat;
+		opacity: 0;
+		transform: rotate(-90deg) scale(0.5);
+	}
+}
+.cw.is-open {
+	.cw_ico.is-fig {
+		opacity: 0;
+		transform: rotate(90deg) scale(0.5);
+	}
+	.cw_ico.is-close {
+		opacity: 1;
+		transform: none;
+	}
+}
+// 입체 도형 버튼 (window.CW_FIG = "solid" → js가 .is-solid, test_quick.php에서 확인 중)
+// 동그라미 없이 명암이 들어간 정이십면체(canvas)만 떠 있고 아래에 옅은 그림자, 열리면 #222 동그라미 + X
+.cw.is-solid {
+	.cw_btn {
+		background: transparent;
+		box-shadow: none;
+
+		// 바닥 그림자
+		&::before {
+			content: "";
+			position: absolute;
+			left: 16px;
+			right: 16px;
+			bottom: 0;
+			height: 8px;
+			border-radius: 50%;
+			background: radial-gradient(closest-side, rgba(17, 17, 17, 0.32), rgba(17, 17, 17, 0));
+			transition: opacity 0.3s;
+		}
+		@media (hover: hover) and (pointer: fine) {
+			&:hover {
+				background: transparent;
+			}
+		}
+	}
+	.cw_ico.is-fig {
+		width: 64px;
+		height: 64px;
+
+		canvas {
+			display: block;
+			width: 100%;
+			height: 100%;
+		}
+		@media (max-width: 768px) {
+			width: 56px;
+			height: 56px;
+		}
+	}
+	&.is-open .cw_btn {
+		background: #222;
+		box-shadow:
+			0 8px 24px rgba(17, 17, 17, 0.24),
+			0 2px 6px rgba(17, 17, 17, 0.12);
+
+		&::before {
+			opacity: 0;
+		}
+	}
+}
+
+// 상자: 버튼 위 16px, 오른쪽 아래를 기준으로 작게 → 크게 (닫히면 반대로 접힘)
+.cw_panel {
+	position: absolute;
+	right: 0;
+	bottom: calc(100% + 16px);
+	display: flex;
+	flex-direction: column;
+	width: 400px;
+	max-height: min(760px, calc(100vh - 136px));
+	max-height: min(760px, calc(100svh - 136px));
+	border-radius: 8px;
+	background: #fff;
+	overflow: hidden;
+	box-shadow: $shadow-pop;
+	opacity: 0;
+	visibility: hidden;
+	transform: translateY(16px) scale(0.9);
+	transform-origin: right bottom;
+	transition:
+		opacity 0.2s,
+		transform 0.35s $ease-out,
+		visibility 0s 0.35s;
+
+	&[hidden] {
+		display: none;
+	}
+}
+.cw.is-open .cw_panel {
+	opacity: 1;
+	visibility: visible;
+	transform: none;
+	transition:
+		opacity 0.25s,
+		transform 0.5s $cw-spring,
+		visibility 0s;
+}
+
+// 머리: CONTACT(작은 라벨) → 제목 → 설명, 오른쪽 X
+.cw_head {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px;
+	padding: 32px 32px 24px;
+	border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+
+	p {
+		margin: 0;
+	}
+}
+.cw_lbl {
+	font-size: 14px;
+	line-height: 1;
+	font-weight: 100;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: #888;
+}
+.cw_tit {
+	margin: 16px 0 0;
+	font-size: 24px;
+	line-height: 32px;
+	font-weight: 700;
+	letter-spacing: -0.02em;
+	color: #222;
+}
+.cw_desc {
+	margin-top: 8px !important;
+	font-size: 14px;
+	line-height: 24px;
+	color: #666;
+	word-break: keep-all;
+}
+// 닫기 X (정책 팝업 닫기와 같은 모양)
+.cw_close {
+	position: relative;
+	flex: 0 0 auto;
+	width: 40px;
+	height: 40px;
+	margin: -8px -8px 0 0;
+	border-radius: 50%;
+	transition: background-color 0.2s;
+
+	&::before,
+	&::after {
+		content: "";
+		position: absolute;
+		left: 50%;
+		top: 50%;
+		width: 18px;
+		height: 2px;
+		margin: -1px 0 0 -9px;
+		border-radius: 1px;
+		background: #222;
+		transform: rotate(45deg);
+	}
+	&::after {
+		transform: rotate(-45deg);
+	}
+	&:hover {
+		background: rgba(34, 34, 34, 0.06);
+	}
+}
+// 본문: 길면 이 안에서 스크롤
+.cw_body {
+	flex: 1 1 auto;
+	min-height: 0;
+	padding: 24px 32px 32px;
+	overflow-y: auto;
+	overscroll-behavior: none;
+}
+
+// 폼: 메인 하단과 같은 모양 + 좁은 상자에 맞춰 한 줄에 한 칸 · 버튼 높이 56px
+.cw .contact_form {
+	@include contact-form;
+
+	.cf_grid {
+		grid-template-columns: 1fr;
+		gap: 24px;
+	}
+	.cf_field label {
+		font-size: 16px;
+	}
+	textarea {
+		height: 120px;
+	}
+	.t2cap {
+		margin-top: 24px;
+
+		.t2cap_row {
+			flex-wrap: wrap;
+		}
+		.t2cap_q {
+			flex-basis: 100%;
+		}
+		.t2cap_answer {
+			flex: 1 1 auto;
+		}
+	}
+	.cf_agree {
+		margin-top: 24px;
+		font-size: 16px;
+
+		a {
+			font-size: 14px;
+		}
+	}
+	// 상담 신청하기: 상자 아래에 붙어 따라옴 (위로 흰색이 번지는 바탕 — 지나가는 칸이 버튼 뒤로 자연스럽게 사라짐)
+	.cf_submit {
+		position: sticky;
+		bottom: -32px; // 스크롤 영역(.cw_body)의 아래 여백만큼 내려 상자 맨 아래에 붙임 (sticky 기준이 여백 안쪽이라)
+		z-index: 2; // 셀렉트 목록(10)보다 아래라 목록은 버튼 위로 펼쳐짐
+		margin: 0 -32px -32px; // 본문 좌우 · 아래 여백까지 덮음
+		padding: 24px 32px 32px;
+		background: linear-gradient(rgba(255, 255, 255, 0), #fff 16px);
+	}
+	.cf_btn {
+		height: 56px;
+		margin-top: 0;
+		font-size: 16px;
+	}
+}
+
+// 768px 이하: 버튼 56px · 여백 16px, 상자는 화면 가득 (열린 동안 버튼은 숨기고 위 X로 닫음)
+@media (max-width: 768px) {
+	.cw {
+		right: 16px;
+		bottom: calc(16px + env(safe-area-inset-bottom));
+	}
+	.cw_btn {
+		width: 56px;
+		height: 56px;
+	}
+	.cw.is-open .cw_btn {
+		opacity: 0;
+		pointer-events: none;
+		transform: scale(0.6);
+	}
+	.cw_panel {
+		position: fixed;
+		inset: 0;
+		width: auto;
+		max-height: none;
+		border-radius: 0;
+		box-shadow: none;
+	}
+	.cw_head {
+		padding: 24px 24px 16px;
+	}
+	.cw_body {
+		padding: 24px 24px calc(24px + env(safe-area-inset-bottom));
+	}
+	.cw .contact_form .cf_submit {
+		bottom: calc(-24px - env(safe-area-inset-bottom));
+		margin: 8px -24px calc(-24px - env(safe-area-inset-bottom));
+		padding: 16px 24px calc(24px + env(safe-area-inset-bottom)); // 아이폰 홈 막대 위로
+	}
+}
+
+/* ---------- 푸터 ---------- */
+#ft {
+	position: relative;
+	z-index: 3; // 메인의 고정 캔버스 · 섹션보다 위
+	background: #000;
+	color: #fff;
+
+	.ft_inner {
+		display: flex;
+		align-items: flex-end;
+		align-items: last baseline; // 왼쪽 마지막 줄(카피라이트)과 TOP의 글자 기준선을 맞춤 (안 되는 브라우저는 아래 끝 맞춤)
+		justify-content: space-between;
+		gap: 40px;
+		padding: 120px $side;
+
+		@media (max-width: 1660px) {
+			padding: 80px $side-md;
+		}
+		@media (max-width: 768px) {
+			gap: 24px;
+			padding: 64px $side-sm;
+		}
+	}
+	.ft_info {
+		min-width: 0;
+	}
+
+	// 로고 (include/logo_txt.php SVG — 원본 크기 640×98을 높이 40px로)
+	.ft_logo {
+		margin: 0;
+		line-height: 0;
+
+		svg {
+			display: block;
+			width: auto;
+			height: 40px;
+
+			@media (max-width: 768px) {
+				height: 28px;
+			}
+		}
+	}
+
+	// 개인정보처리방침 · 이용약관: 24px
+	.ft_links {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px 32px;
+		margin: 40px 0 0;
+		font-size: 24px;
+		line-height: 1;
+		font-weight: 700;
+
+		@media (max-width: 768px) {
+			gap: 8px 24px;
+			font-size: 20px;
+		}
+
+		a {
+			color: #fff;
+			transition: opacity 0.2s;
+
+			&:hover {
+				opacity: 0.6;
+			}
+		}
+	}
+	// 푸터 글자 16px, 카피라이트 · TOP은 흰색 50%
+	.ft_biz {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0 16px;
+		margin: 24px 0 0;
+		font-size: 16px;
+		line-height: 1;
+		font-weight: 300;
+		color: rgba(255, 255, 255, 0.5);
+	}
+	.ft_copy {
+		margin: 24px 0 0;
+		display: inline-block;
+		font-size: 16px;
+		line-height: 24px;
+		font-weight: 100;
+		color: rgba(255, 255, 255, 0.5);
+	}
+
+	// TOP 버튼: 글자만 — 카피라이트와 같은 16px / 24px, 글자 기준선 정렬(.ft_inner)로 같은 선에 놓임
+	.ft_top {
+		padding: 0;
+		display: block;
+		font-size: 16px;
+		line-height: 1;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		color: rgba(255, 255, 255, 0.5);
+		transition: color 0.3s;
+
+		&:hover,
+		&:focus-visible {
+			color: #fff;
+		}
+	}
+
+	@media (max-width: 480px) {
+		.ft_links {
+			font-size: 16px;
+			line-height: 1;
+		}
+		.ft_biz {
+			flex-direction: column;
+			gap: 8px;
+			font-size: 12px;
+			line-height: 1;
+		}
+		.ft_copy {
+			font-size: 12px;
+			line-height: 1;
+		}
+	}
+}
+
+// 상담 신청 완료 팝업의 체크 아이콘 (아래 .done_icon)
+@keyframes done-pop {
+	from {
+		transform: scale(0.4);
+		opacity: 0;
+	}
+	to {
+		transform: none;
+		opacity: 1;
+	}
+}
+@keyframes done-draw {
+	from {
+		clip-path: inset(0 100% 0 0);
+	}
+	to {
+		clip-path: inset(0 0 0 0);
+	}
+}
+
+/* ---------- 팝업레이어 (관리자 > 팝업레이어관리, include/newwin.php · js/layout.js) ----------
+   정책 · 오픈 안내 팝업과 같은 디자인: 흰 상자 r 8px + 그림자 / 아래 [N시간 동안 보지 않기](테두리) · [닫기](#444 → #111)
+   위치 · 크기는 관리자 설정값(--top · --left · --w · --h), 화면에 고정 / 768px 이하는 화면 가운데에 꽉 차게
+   나타날 때: 아래에서 올라오며 서서히 (여러 개면 차례로 --n) */
+.nw_wrap {
+	position: fixed;
+	inset: 0;
+	z-index: 150; // 헤더(100) 위, 정책 팝업(200) 아래
+	pointer-events: none;
+}
+.nw_pop {
+	position: absolute;
+	top: var(--top);
+	left: var(--left);
+	display: flex;
+	flex-direction: column;
+	width: var(--w);
+	max-width: calc(100vw - 40px);
+	max-height: calc(100svh - 40px);
+	border-radius: 8px;
+	background: #fff;
+	box-shadow: $shadow-pop;
+	overflow: hidden;
+	pointer-events: auto;
+	opacity: 0;
+	transform: translateY(24px);
+	transition:
+		opacity 0.3s,
+		transform 0.4s $ease-out;
+
+	&.is-show {
+		opacity: 1;
+		transform: none;
+		transition:
+			opacity 0.6s $ease-out calc(var(--n, 0) * 0.08s),
+			transform 0.9s $ease-out calc(var(--n, 0) * 0.08s);
+	}
+	@media (max-width: 768px) {
+		top: 50%;
+		left: 20px;
+		right: 20px;
+		width: auto;
+		max-width: none;
+		transform: translateY(calc(-50% + 24px));
+
+		&.is-show {
+			transform: translateY(-50%);
+		}
+	}
+}
+// 내용 (관리자 편집기 글) — 높이는 관리자 설정값, 넘치면 안에서 스크롤
+.nw_con {
+	flex: 1 1 auto;
+	min-height: 0;
+	height: var(--h);
+	overflow-y: auto;
+	overscroll-behavior: none;
+	font-size: 16px;
+	line-height: 28px;
+	color: #444;
+	word-break: keep-all;
+
+	img {
+		display: block;
+		max-width: 100%;
+		height: auto;
+	}
+	p {
+		margin: 0;
+	}
+	@media (max-width: 768px) {
+		height: auto;
+		max-height: calc(100svh - 160px);
+	}
+}
+// 아래 버튼 (정책 팝업 .policy_foot · .policy_btn과 같음)
+.nw_foot {
+	display: flex;
+	gap: 8px;
+	padding: 16px;
+	border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+.nw_btn {
+	flex: 1;
+	height: 48px;
+	border-radius: 8px;
+	background: #444;
+	font-size: 14px;
+	line-height: 1;
+	font-weight: 700;
+	color: #fff;
+	white-space: nowrap;
+	transition: background-color 0.3s;
+
+	&:hover,
+	&:focus-visible {
+		background: #111;
+	}
+	&.is-line {
+		flex: 0 0 auto;
+		padding: 0 16px;
+		background: #fff;
+		box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+		font-weight: 500;
+		color: #444;
+
+		&:hover,
+		&:focus-visible {
+			background: rgba(34, 34, 34, 0.04);
+		}
+	}
+}
+
+/* ---------- 정책 팝업 ----------
+   흰 상자(최대 720px) — 머리(제목 · 닫기) / 본문(스크롤) / 아래 버튼
+   js/layout.js가 hidden 해제 + .is-open (나타남), html.is-pop (페이지 스크롤 멈춤) */
+// 페이지 스크롤 멈춤: 마우스 기기만 (휴대폰은 js/layout.js가 터치로 막음 — 아이폰 사파리는 html overflow를 껐다 켜면
+// 고정 헤더를 다시 그리지 않아 팝업을 닫은 뒤 로고 · MENU가 터치 전까지 안 보였음)
+@media (hover: hover) and (pointer: fine) {
+	html.is-pop {
+		overflow: hidden;
+	}
+}
+.policy_pop {
+	overscroll-behavior: none;
+}
+.policy_pop {
+	position: fixed;
+	inset: 0;
+	z-index: 200;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 40px 20px;
+
+	&[hidden] {
+		display: none;
+	}
+	.policy_dim {
+		position: absolute;
+		inset: 0;
+		background: rgba(17, 17, 17, 0.6);
+		opacity: 0;
+		transition: opacity 0.3s;
+	}
+	.policy_box {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		width: 100%;
+		max-width: 720px;
+		max-height: 70%;
+		border-radius: 8px;
+		background: #fff;
+		box-shadow: $shadow-pop;
+		opacity: 0;
+		transform: translateY(24px);
+		transition:
+			opacity 0.3s,
+			transform 0.4s $ease-out;
+		@media (min-height: 800px) {
+			max-height: 80%;
+		}
+	}
+	&.is-open {
+		.policy_dim {
+			opacity: 1;
+		}
+		.policy_box {
+			opacity: 1;
+			transform: none;
+		}
+	}
+
+	.policy_head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 16px;
+		padding: 32px 32px 24px;
+		border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+
+		h2 {
+			margin: 0;
+			font-size: 24px;
+			line-height: 1;
+			font-weight: 700;
+			color: #222;
+		}
+	}
+	// 닫기 (X)
+	.policy_close {
+		position: relative;
+		flex: 0 0 auto;
+		width: 40px;
+		height: 40px;
+		margin-right: -8px;
+		border-radius: 50%;
+		transition: background-color 0.2s;
+
+		&::before,
+		&::after {
+			content: "";
+			position: absolute;
+			left: 50%;
+			top: 50%;
+			width: 18px;
+			height: 2px;
+			margin: -1px 0 0 -9px;
+			border-radius: 1px;
+			background: #222;
+			transform: rotate(45deg);
+		}
+		&::after {
+			transform: rotate(-45deg);
+		}
+		&:hover {
+			background: rgba(34, 34, 34, 0.06);
+		}
+	}
+
+	// 본문 (길면 이 안에서 스크롤)
+	.policy_body {
+		flex: 1 1 auto;
+		min-height: 0;
+		padding: 32px;
+		overflow-x: hidden;
+		overflow-y: auto;
+		overscroll-behavior: none;
+		font-size: 14px;
+		line-height: 24px;
+		color: #666;
+		word-break: keep-all;
+
+		h3 {
+			margin: 32px 0 8px;
+			font-size: 16px;
+			line-height: 1;
+			font-weight: 700;
+			color: #222;
+
+			&:first-child {
+				margin-top: 0;
+			}
+		}
+		p {
+			margin: 0;
+		}
+		strong {
+			font-weight: 700;
+			color: #444;
+		}
+		ul {
+			margin: 8px 0 0;
+			padding: 0;
+		}
+		li {
+			position: relative;
+			padding-left: 16px;
+
+			&::before {
+				content: "";
+				position: absolute;
+				left: 4px;
+				top: 11px;
+				width: 3px;
+				height: 3px;
+				border-radius: 50%;
+				background: #888;
+			}
+		}
+	}
+	.policy_lead {
+		color: #444;
+	}
+	.policy_tbl {
+		width: 100%;
+		margin-top: 8px;
+		border-collapse: collapse;
+		border-top: 1px solid rgba(0, 0, 0, 0.1);
+
+		th,
+		td {
+			padding: 8px 16px;
+			border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+			text-align: left;
+			vertical-align: top;
+		}
+		th {
+			width: 128px;
+			background: rgba(34, 34, 34, 0.04);
+			font-weight: 500;
+			color: #444;
+		}
+	}
+	.policy_info {
+		margin-top: 24px !important;
+		padding: 16px;
+		border-radius: 8px;
+		background: rgba(34, 34, 34, 0.04);
+		font-size: 14px;
+		color: #888;
+	}
+
+	// 아래 버튼
+	.policy_foot {
+		display: flex;
+		gap: 8px;
+		padding: 16px 32px 32px;
+	}
+	.policy_btn {
+		display: flex; // 링크(<a>)로 써도 버튼과 같게 (예: 비밀번호 찾기 완료 팝업의 [로그인하기])
+		align-items: center;
+		justify-content: center;
+		flex: 1;
+		height: 56px;
+		text-decoration: none;
+		border-radius: 8px;
+		background: #444;
+		font-size: 16px;
+		line-height: 1;
+		font-weight: 700;
+		color: #fff;
+		transition: background-color 0.3s;
+
+		&:hover,
+		&:focus-visible {
+			background: #111;
+		}
+		&.is-line {
+			flex: 0 0 120px;
+			background: #fff;
+			box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+			color: #444;
+
+			&:hover,
+			&:focus-visible {
+				background: rgba(34, 34, 34, 0.04);
+			}
+		}
+	}
+
+	// 정식 오픈 안내 팝업 (#pop_open_notice, include/open_notice.php): 이용약관 팝업과 같은 크기 · 틀
+	// 본문: 작은 라벨(GRAND OPEN) → 큰 날짜 문구 → 안내 글 / 아래 [24시간 동안 보지 않기](테두리) · [닫기]
+	.notice_body {
+		padding-top: 40px;
+		padding-bottom: 40px;
+	}
+	.notice_lbl {
+		margin: 0;
+		font-size: 14px;
+		line-height: 1;
+		font-weight: 100;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: #888;
+	}
+	.notice_date {
+		margin: 16px 0 0 !important;
+		font-size: 40px;
+		line-height: 48px;
+		font-weight: 700;
+		letter-spacing: -0.02em;
+		color: #222;
+		word-break: keep-all;
+
+		b {
+			font-weight: 900;
+		}
+	}
+	.notice_txt {
+		margin: 16px 0 0 !important;
+		font-size: 16px;
+		line-height: 24px;
+		color: #666;
+	}
+	.notice_hide {
+		flex: 0 0 auto !important;
+		padding: 0 24px;
+	}
+	// 열릴 때: 상자가 올라온 뒤 본문(라벨 → 날짜 → 안내 글)이 차례로 아래에서 올라옴
+	.notice_body > * {
+		opacity: 0;
+		transform: translateY(24px);
+		transition:
+			opacity 0.3s,
+			transform 0.3s $ease-out;
+	}
+	&.is-open .notice_body > * {
+		opacity: 1;
+		transform: none;
+		transition:
+			opacity 0.6s $ease-out,
+			transform 0.9s $ease-out;
+
+		&:nth-child(1) {
+			transition-delay: 0.2s;
+		}
+		&:nth-child(2) {
+			transition-delay: 0.3s;
+		}
+		&:nth-child(3) {
+			transition-delay: 0.42s;
+		}
+	}
+
+	// 상담 신청 완료 팝업 (#pop_contact_done, latest 스킨): 작은 상자 · 가운데 체크 아이콘 + 제목 + 안내
+	&.is-done .policy_box {
+		max-width: 400px;
+	}
+	.done_body {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		padding: 48px 32px 16px;
+		text-align: center;
+
+		h2 {
+			margin: 24px 0 0;
+			font-size: 24px;
+			line-height: 1;
+			font-weight: 700;
+			color: #222;
+		}
+		p {
+			margin: 16px 0 0;
+			font-size: 16px;
+			line-height: 24px;
+			color: #666;
+			word-break: keep-all;
+		}
+	}
+	// 체크 아이콘: #222 동그라미 안에 흰 체크 — 팝업이 열릴 때 튀어나오고 체크가 그려짐
+	.done_icon {
+		position: relative;
+		display: grid;
+		place-items: center;
+		width: 64px;
+		height: 64px;
+		border-radius: 50%;
+		background: #222;
+
+		&::after {
+			content: "";
+			width: 28px;
+			height: 28px;
+			background: #fff;
+			-webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center / contain no-repeat;
+			mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center / contain no-repeat;
+		}
+	}
+	&.is-done.is-open .done_icon {
+		animation: done-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+
+		&::after {
+			animation: done-draw 0.4s cubic-bezier(0.65, 0, 0.35, 1) 0.35s both;
+		}
+	}
+
+	@media (max-width: 768px) {
+		padding: 20px;
+
+		.notice_body {
+			padding-top: 24px;
+			padding-bottom: 24px;
+		}
+		.notice_date {
+			font-size: 24px;
+			line-height: 32px;
+		}
+		.notice_txt br {
+			display: none;
+		}
+		.done_body {
+			padding: 40px 24px 8px;
+
+			h2 {
+				font-size: 20px;
+			}
+		}
+		.policy_head {
+			padding: 24px 24px 16px;
+
+			h2 {
+				font-size: 20px;
+			}
+		}
+		.policy_body {
+			padding: 24px;
+		}
+		.policy_foot {
+			padding: 16px 24px 24px;
+		}
+		.policy_tbl th {
+			width: 96px;
+		}
+	}
+}
