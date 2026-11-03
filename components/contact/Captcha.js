@@ -128,8 +128,9 @@ export default function Captcha({ pre, ref }) {
 			<p className={"t2cap_msg" + (msg[1] ? " is-" + msg[1] : "")} role="status" aria-live="polite">
 				{msg[0]}
 			</p>
-			<input type="hidden" name="t2-captcha-token" defaultValue="" ref={tokRef} />
-			<input type="hidden" name="t2-captcha-response" defaultValue="" ref={resRef} />
+			{/* value · defaultValue를 주지 않음: hidden 칸은 둘이 같은 값이라, 주면 다시 그릴 때마다 React가 통과 표시를 ""로 되돌림 */}
+			<input type="hidden" name="t2-captcha-token" ref={tokRef} />
+			<input type="hidden" name="t2-captcha-response" ref={resRef} />
 		</div>
 	);
 }
