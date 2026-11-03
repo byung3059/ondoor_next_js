@@ -4,6 +4,7 @@ import { useState } from "react";
 import { LineChart, DonutChart, numberFormat } from "./charts";
 
 const PERIOD_TEXT = { today: "일간", 7: "주간", 30: "월간" };
+const PERIODS = ["today", "7", "30"]; // 객체 키 순서는 숫자 키가 먼저라 탭 순서는 따로 둠
 const pad2 = (n) => String(n).padStart(2, "0");
 const hourLabels = Array.from({ length: 24 }, (_, h) => `${pad2(h)}시`);
 const dayLabel = (d) => `${d.slice(5, 7)}.${d.slice(8, 10)}`;
@@ -19,9 +20,9 @@ function rangeText(period, today) {
 function PeriodTabs({ value, onChange }) {
 	return (
 		<div className="adm_segment" role="tablist">
-			{Object.entries(PERIOD_TEXT).map(([v, label]) => (
+			{PERIODS.map((v) => (
 				<button key={v} type="button" role="tab" aria-selected={value === v} className={value === v ? "is-active" : undefined} onClick={() => onChange(v)}>
-					{label}
+					{PERIOD_TEXT[v]}
 				</button>
 			))}
 		</div>
