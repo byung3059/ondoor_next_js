@@ -57,7 +57,7 @@ export default function SubFx({ className, noLenis, hdAuto, children }) {
 
 			/* ③ 진행 과정 점선 */
 			const flowLines = pickAll(".ab_flow_line");
-			gsap.set(flowLines, { scaleY: 0 });
+			if (flowLines.length) gsap.set(flowLines, { scaleY: 0 });
 
 			ready();
 

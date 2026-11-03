@@ -1,0 +1,468 @@
+/* 관리자 화면 — 사이트 디자인 규칙(글자색 #222 · #444 · #666 · #888, 간격 8px 배수, 모서리 8px)을 따름 */
+@import url("https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy.css");
+
+.adm {
+	--line: #e6e6e6;
+	--bg: #f6f6f6;
+	--ink: #222;
+	--sub: #666;
+	--mute: #888;
+	--accent: #111;
+	--new: #e8590c;
+	min-height: 100vh;
+	background: var(--bg);
+	color: var(--ink);
+	font-family: "Paperlogy", "Malgun Gothic", sans-serif;
+	font-size: 14px;
+	line-height: 1.6;
+}
+.adm *,
+.adm *::before,
+.adm *::after {
+	box-sizing: border-box;
+}
+.adm a {
+	color: inherit;
+	text-decoration: none;
+}
+.adm button,
+.adm input,
+.adm select,
+.adm textarea {
+	font: inherit;
+	color: inherit;
+}
+
+/* 머리 */
+.adm_hd {
+	position: sticky;
+	top: 0;
+	z-index: 10;
+	display: flex;
+	align-items: center;
+	gap: 24px;
+	height: 64px;
+	padding: 0 32px;
+	background: #fff;
+	border-bottom: 1px solid var(--line);
+}
+.adm_logo {
+	font-weight: 900;
+	font-size: 18px;
+	letter-spacing: -0.02em;
+}
+.adm_logo small {
+	margin-left: 8px;
+	font-weight: 500;
+	font-size: 13px;
+	color: var(--mute);
+}
+.adm_nav {
+	display: flex;
+	gap: 16px;
+	flex: 1;
+}
+.adm_nav a {
+	color: var(--sub);
+	font-weight: 500;
+}
+.adm_nav a.is-on {
+	color: var(--ink);
+	font-weight: 700;
+}
+.adm_hd_r {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	color: var(--mute);
+	font-size: 13px;
+}
+
+.adm_main {
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 32px;
+}
+.adm_title {
+	display: flex;
+	align-items: flex-end;
+	justify-content: space-between;
+	gap: 16px;
+	margin: 0 0 24px;
+}
+.adm_title h1 {
+	margin: 0;
+	font-size: 28px;
+	line-height: 1.2;
+	font-weight: 700;
+}
+.adm_title p {
+	margin: 8px 0 0;
+	color: var(--mute);
+}
+
+/* 버튼 · 입력 */
+.adm_btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	height: 40px;
+	padding: 0 16px;
+	border: 1px solid var(--line);
+	border-radius: 8px;
+	background: #fff;
+	cursor: pointer;
+	font-weight: 500;
+	white-space: nowrap;
+}
+.adm_btn:hover {
+	border-color: #bbb;
+}
+.adm_btn.is-primary {
+	background: var(--accent);
+	border-color: var(--accent);
+	color: #fff;
+}
+.adm_btn.is-danger {
+	color: #c92a2a;
+}
+.adm_btn.is-sm {
+	height: 32px;
+	padding: 0 12px;
+	font-size: 13px;
+}
+.adm_btn.is-block {
+	width: 100%;
+}
+.adm_small {
+	color: var(--mute);
+	font-size: 12px;
+}
+.adm_btn:disabled {
+	opacity: 0.5;
+	cursor: default;
+}
+.adm_input,
+.adm_select,
+.adm_textarea {
+	width: 100%;
+	height: 40px;
+	padding: 0 12px;
+	border: 1px solid var(--line);
+	border-radius: 8px;
+	background: #fff;
+	outline: none;
+}
+.adm_textarea {
+	height: auto;
+	min-height: 160px;
+	padding: 12px;
+	resize: vertical;
+	line-height: 1.6;
+}
+.adm_input:focus,
+.adm_select:focus,
+.adm_textarea:focus {
+	border-color: var(--ink);
+}
+
+/* 목록 도구 */
+.adm_tools {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	margin-bottom: 16px;
+}
+.adm_tabs {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+.adm_tabs a {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	height: 36px;
+	padding: 0 14px;
+	border-radius: 999px;
+	background: #fff;
+	border: 1px solid var(--line);
+	color: var(--sub);
+	font-weight: 500;
+}
+.adm_tabs a b {
+	font-weight: 700;
+	color: var(--mute);
+}
+.adm_tabs a.is-on {
+	background: var(--accent);
+	border-color: var(--accent);
+	color: #fff;
+}
+.adm_tabs a.is-on b {
+	color: #fff;
+}
+.adm_search {
+	display: flex;
+	gap: 8px;
+}
+.adm_search .adm_input {
+	width: 260px;
+}
+
+/* 표 */
+.adm_card {
+	background: #fff;
+	border: 1px solid var(--line);
+	border-radius: 8px;
+	overflow: hidden;
+}
+.adm_tbl {
+	width: 100%;
+	border-collapse: collapse;
+}
+.adm_tbl th,
+.adm_tbl td {
+	padding: 14px 16px;
+	border-bottom: 1px solid var(--line);
+	text-align: left;
+	vertical-align: middle;
+}
+.adm_tbl th {
+	background: #fafafa;
+	color: var(--mute);
+	font-weight: 500;
+	font-size: 13px;
+	white-space: nowrap;
+}
+.adm_tbl tr:last-child td {
+	border-bottom: 0;
+}
+.adm_tbl tbody tr {
+	cursor: pointer;
+}
+.adm_tbl tbody tr:hover td {
+	background: #fafafa;
+}
+.adm_tbl .is-nowrap {
+	white-space: nowrap;
+}
+.adm_tbl .is-mute {
+	color: var(--mute);
+}
+.adm_tbl .c_name a {
+	font-weight: 700;
+}
+.adm_tbl .c_snip {
+	color: var(--sub);
+	max-width: 360px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.adm_empty {
+	padding: 64px 16px;
+	text-align: center;
+	color: var(--mute);
+}
+
+/* 상태 표시 */
+.adm_badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	height: 24px;
+	padding: 0 10px;
+	border-radius: 999px;
+	font-size: 12px;
+	font-weight: 700;
+	white-space: nowrap;
+	background: #f1f1f1;
+	color: var(--sub);
+}
+.adm_badge.is-new {
+	background: #fff4e6;
+	color: var(--new);
+}
+.adm_badge.is-contacted {
+	background: #e7f5ff;
+	color: #1971c2;
+}
+.adm_badge.is-done {
+	background: #ebfbee;
+	color: #2b8a3e;
+}
+.adm_tag {
+	display: inline-block;
+	padding: 0 8px;
+	border-radius: 4px;
+	background: #f1f1f1;
+	color: var(--sub);
+	font-size: 12px;
+}
+
+/* 쪽 번호 */
+.adm_pager {
+	display: flex;
+	justify-content: center;
+	gap: 4px;
+	margin-top: 24px;
+}
+.adm_pager a,
+.adm_pager span {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 36px;
+	height: 36px;
+	padding: 0 8px;
+	border-radius: 8px;
+	color: var(--sub);
+}
+.adm_pager a:hover {
+	background: #fff;
+}
+.adm_pager .is-on {
+	background: var(--accent);
+	color: #fff;
+	font-weight: 700;
+}
+
+/* 상세 */
+.adm_back {
+	display: inline-block;
+	margin-bottom: 16px;
+	color: var(--mute);
+}
+.adm_detail {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 360px;
+	gap: 24px;
+	align-items: start;
+}
+.adm_box {
+	padding: 24px;
+}
+.adm_box h2 {
+	margin: 0 0 16px;
+	font-size: 16px;
+}
+.adm_dl {
+	display: grid;
+	grid-template-columns: 96px minmax(0, 1fr);
+	gap: 12px 16px;
+	margin: 0;
+}
+.adm_dl dt {
+	color: var(--mute);
+}
+.adm_dl dd {
+	margin: 0;
+	word-break: break-all;
+}
+.adm_dl dd a {
+	text-decoration: underline;
+}
+.adm_content {
+	margin: 24px 0 0;
+	padding: 16px;
+	border-radius: 8px;
+	background: var(--bg);
+	white-space: pre-wrap;
+	word-break: break-word;
+	line-height: 1.8;
+}
+.adm_field {
+	display: grid;
+	gap: 8px;
+	margin-bottom: 16px;
+}
+.adm_field label {
+	color: var(--mute);
+	font-size: 13px;
+}
+.adm_row {
+	display: flex;
+	gap: 8px;
+	justify-content: space-between;
+}
+.adm_note {
+	margin: 0 0 16px;
+	padding: 12px 16px;
+	border-radius: 8px;
+	background: #ebfbee;
+	color: #2b8a3e;
+}
+.adm_note.is-warn {
+	background: #fff4e6;
+	color: var(--new);
+}
+.adm_sep {
+	margin: 24px 0;
+	border: 0;
+	border-top: 1px solid var(--line);
+}
+
+/* 로그인 */
+.adm_login {
+	display: grid;
+	place-items: center;
+	min-height: 100vh;
+	padding: 24px;
+}
+.adm_login form {
+	width: 100%;
+	max-width: 360px;
+	padding: 32px;
+	background: #fff;
+	border: 1px solid var(--line);
+	border-radius: 8px;
+}
+.adm_login h1 {
+	margin: 0 0 8px;
+	font-size: 24px;
+	font-weight: 900;
+}
+.adm_login p {
+	margin: 0 0 24px;
+	color: var(--mute);
+}
+.adm_login .adm_btn {
+	width: 100%;
+	margin-top: 8px;
+}
+.adm_err {
+	margin: 8px 0 0;
+	color: #c92a2a;
+	font-size: 13px;
+}
+.adm_hint {
+	margin: 16px 0 0 !important;
+	font-size: 12px;
+}
+
+@media (max-width: 900px) {
+	.adm_hd {
+		padding: 0 16px;
+		gap: 16px;
+	}
+	.adm_hd_r .adm_who {
+		display: none;
+	}
+	.adm_main {
+		padding: 24px 16px;
+	}
+	.adm_detail {
+		grid-template-columns: 1fr;
+	}
+	.adm_search,
+	.adm_search .adm_input {
+		width: 100%;
+	}
+	.adm_tbl .is-hide-m {
+		display: none;
+	}
+}
