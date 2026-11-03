@@ -1,0 +1,275 @@
+@use "tokens" as *;
+@use "theme" as *;
+@use "mixins" as *;
+
+// =========================================================
+// 글자 리셋
+// 글자를 담는 요소는 최소 16px, 굵기 400 으로 맞춥니다.
+// 요소 선택자(우선순위 낮음)로 두어 컴포넌트 클래스가 크기/굵기를 정할 수 있게 합니다.
+// =========================================================
+html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
+body {
+    margin: 0;
+    background: var(--adm-bg);
+    color: var(--adm-text);
+    font-family: $font-family;
+    @include text(body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+li,
+a,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+strong,
+b,
+em,
+label,
+dt,
+dd,
+th,
+td,
+caption,
+legend,
+input,
+select,
+textarea {
+    font-family: $font-family;
+    font-size: $font-body;
+    font-weight: $weight-regular;
+}
+
+// 문장 안의 강조(strong, b, em)는 둘러싼 글자 크기를 따릅니다.
+// (위 리셋이 16px 로 고정하면 14px 도움말 안의 강조만 커지므로)
+strong,
+b,
+em {
+    font-size: inherit;
+    line-height: inherit;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+ul,
+ol,
+dl,
+dd,
+figure {
+    margin: 0;
+}
+
+ul,
+ol {
+    padding: 0;
+    list-style: none;
+}
+
+a,
+a:link,
+a:visited {
+    color: inherit;
+    text-decoration: none;
+}
+
+button {
+    color: inherit;
+    cursor: pointer;
+}
+
+img,
+svg {
+    vertical-align: middle;
+}
+
+:focus-visible {
+    @include focus-ring;
+}
+
+::selection {
+    background: theme-color(soft);
+}
+
+// 버튼 클릭 물결 (.adm_ripple)
+@keyframes adm-ripple {
+    to {
+        opacity: 0;
+        transform: scale(2.5);
+    }
+}
+
+// 체크박스 켜짐 (토스 스타일): 원이 살짝 작아졌다 튕기듯 커지고, 체크가 왼쪽부터 그려집니다.
+@keyframes adm-check-pop {
+    0% { transform: scale(.8); }
+    60% { transform: scale(1.08); }
+    100% { transform: scale(1); }
+}
+
+@keyframes adm-check-draw {
+    from { clip-path: inset(0 100% 0 0); }
+    to { clip-path: inset(0 0 0 0); }
+}
+
+// 라디오 켜짐: 꽉 찬 원에서 가운데 흰 점이 튕기듯 열립니다. (고리 두께 10px → 5px → 6px)
+@keyframes adm-radio-in {
+    0% { box-shadow: inset 0 0 0 10px var(--adm-accent); }
+    60% { box-shadow: inset 0 0 0 5px var(--adm-accent); }
+    100% { box-shadow: inset 0 0 0 6px var(--adm-accent); }
+}
+
+// 알림 패널 열림 (토스 스타일): 종 아이콘 쪽에서 작게 떠올라 살짝 넘쳤다가 쫀득하게 자리 잡습니다.
+@keyframes adm-notify-in {
+    0% {
+        opacity: 0;
+        transform: translateY(16px) scale(.9);
+    }
+    45% {
+        opacity: 1;
+        transform: translateY(-4px) scale(1.02);
+    }
+    70% {
+        transform: translateY(1px) scale(.995);
+    }
+    100% {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+// 알림 패널 닫힘: 머뭇거림 없이 빠르게 작아지며 사라집니다.
+@keyframes adm-notify-out {
+    to {
+        opacity: 0;
+        transform: translateY(8px) scale(.94);
+    }
+}
+
+// 태블릿 하위 메뉴 패널 열림: 아이콘 메뉴 쪽에서 오른쪽으로 살짝 밀려 나옵니다. (_responsive.scss)
+@keyframes adm-flyout-in {
+    from {
+        opacity: 0;
+        transform: translateX(-16px);
+    }
+}
+
+// 알림 패널 안 내용: 패널보다 한 박자 늦게 아래에서 올라옵니다.
+@keyframes adm-rise-in {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+}
+
+// 페이지 입장: 살짝 아래에서 떠오르며 나타남
+@keyframes adm-page-in {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+}
+
+// 페이지 입장 (움직이면 안 되는 요소용): 투명도만
+@keyframes adm-fade-in {
+    from {
+        opacity: 0;
+    }
+}
+
+// 대시보드·통계 카드 입장: 조금 더 아래에서 작게 시작해 제자리로
+@keyframes adm-card-in {
+    from {
+        opacity: 0;
+        transform: translateY(16px) scale(.98);
+    }
+}
+
+// 그래프 면·점이 선을 따라 나타남
+@keyframes adm-chart-fade {
+    from {
+        opacity: 0;
+    }
+}
+
+// 막대가 왼쪽(아래)에서 자라남
+@keyframes adm-bar-grow-x {
+    from {
+        transform: scaleX(0);
+    }
+}
+
+@keyframes adm-bar-grow-y {
+    from {
+        transform: scaleY(0);
+    }
+}
+
+// 화살표 아이콘: 가리키는 쪽으로 빠져나갔다가 반대쪽에서 다시 들어옴 (TOP 버튼 글자와 같은 방식)
+@keyframes adm-arrow-next {
+    0% { transform: none; }
+    45% {
+        opacity: 0;
+        transform: translateX(50%);
+    }
+    46% {
+        opacity: 0;
+        transform: translateX(-50%);
+    }
+    100% {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes adm-arrow-prev {
+    0% { transform: none; }
+    45% {
+        opacity: 0;
+        transform: translateX(-50%);
+    }
+    46% {
+        opacity: 0;
+        transform: translateX(50%);
+    }
+    100% {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+// 더보기 점 3개: 하나씩 위로 튀었다가 제자리
+@keyframes adm-dot-wave {
+    0%,
+    100% { transform: none; }
+    40% { transform: translateY(-5px); }
+}
+
+// 움직임 줄이기를 켠 사용자에게는 애니메이션을 끕니다.
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: .01ms !important;
+        transition-duration: .01ms !important;
+    }
+}
+
+// Google Material Symbols
+.material-symbols-rounded {
+    display: inline-block;
+    @include icon(24px, 1);
+}

@@ -1,0 +1,744 @@
+@use "tokens" as *;
+@use "theme" as *;
+@use "mixins" as *;
+
+// =========================================================
+// 기존 관리자 페이지 요소 (adm/css/admin.css 의 클래스를 테마에 맞춤)
+//  섹션 제목, 섹션 바로가기, 개수 요약, 검색, 안내, 페이징, 사이드뷰, 레이어 팝업, 쇼핑몰 현황
+// =========================================================
+@mixin styles {
+    // 섹션 제목
+    h2,
+    .h2_frm {
+        color: var(--adm-text-strong);
+        @include text(title, $weight-bold);
+    }
+
+    // 본문 안의 섹션 제목: 앞 블록과 32px 띄우고, 아래 내용과는 12px (본문 첫 제목은 위 여백 없음)
+    .h2_frm,
+    .container_wr > h2,
+    .container_wr > form > h2,
+    .container_wr > section > h2 {
+        margin: $space-6 0 $space-3;
+    }
+
+    section:first-of-type > .h2_frm,
+    .container_wr > h2:first-child,
+    .container_wr > form:first-child > h2:first-child,
+    .container_wr > section:first-child > h2:first-child {
+        margin-top: 0;
+    }
+
+    // 폼 안의 섹션 바로가기 (작은 탭 버튼, 테두리 없이 배경으로 채움)
+    .anchor {
+        display: flex;
+        flex-wrap: wrap;
+        gap: $space-2;
+        margin: 0 0 $space-4;
+
+        li {
+            float: none;
+            margin: 0;
+        }
+
+        a {
+            display: inline-flex;
+            align-items: center;
+            height: $control-sm;
+            padding: 0 $space-3;
+            border: 0;
+            border-radius: $radius;
+            background: var(--adm-btn-bg);
+            color: var(--adm-text-sub);
+            @include text(caption);
+            @include button-motion;
+        }
+
+        .selected,
+        .selected a,
+        a.is-current {
+            background: theme-color();
+            color: theme-color(text);
+            font-weight: $weight-bold;
+        }
+    }
+
+    // 섹션 바로가기 → 탭 (js 의 initAnchorTabs)
+    // 고른 섹션만 보입니다. 섹션 안의 원래 바로가기는 숨깁니다. (탭 줄은 고정하지 않음)
+    .adm_anchor_tabs {
+        margin: 0 0 $space-5;
+
+        .anchor {
+            margin: 0;
+        }
+    }
+
+    .anchor.adm_anchor_orig,
+    .adm_tab_hidden {
+        display: none !important;
+    }
+
+    // 섹션 사이에 있다가 섹션 제목 아래로 옮겨진 요소 (예: 테마 스킨설정 가져오기 버튼)
+    .adm_tab_moved {
+        margin: 0 0 $space-3;
+    }
+
+    // 탭으로 보이는 섹션은 모두 맨 위 섹션처럼 제목 위 여백 없이
+    .adm_anchor_tabs ~ [role="tabpanel"] > .h2_frm:first-child {
+        margin-top: 0;
+    }
+
+    // CommonUI 탭 (admin.js): 밑줄 없이 굵기로 표시
+    .tab-btn {
+        border-bottom-color: transparent;
+    }
+
+    .tab-btn.active {
+        color: var(--adm-text-strong);
+        font-weight: $weight-bold;
+    }
+
+    // 개수 요약 (전체목록, 총회원수 …)
+    .local_ov01 {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: $space-2;
+        margin: 0 0 $space-4;
+    }
+
+    .btn_ov01 {
+        display: inline-flex;
+        height: $control-md;
+        overflow: hidden;
+        border-radius: $radius;
+        background: var(--adm-btn-bg);
+        line-height: $control-md;
+
+        .ov_txt,
+        .ov_num {
+            float: none;
+            padding: 0 $space-3;
+            border-radius: 0;
+            background: none;
+            @include text(caption);
+            line-height: $control-md;
+        }
+
+        .ov_txt {
+            color: var(--adm-text-muted);
+        }
+
+        .ov_num {
+            color: var(--adm-text-strong);
+            font-weight: $weight-bold;
+        }
+    }
+
+    a.ov_listall,
+    a.btn_ov02,
+    .local_ov01 .ov_a {
+        @include button-base;
+
+        & {
+            @include text(caption);
+        }
+    }
+
+    .local_ov01 .ov_a {
+        @include button-primary;
+    }
+
+    // 검색 (카드 안쪽 여백 16px: 표 카드의 머리 행과 왼쪽 끝이 맞음)
+    .local_sch01,
+    .local_sch02,
+    .local_sch03 {
+        margin: 0 0 $space-4;
+        padding: $space-4;
+        @include surface;
+    }
+
+    .local_sch01 {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: $space-2;
+
+        &::after {
+            display: none;
+        }
+    }
+
+    // 입력칸 모양은 _forms.scss 의 field 가 이미 적용되므로 admin.css 의 float·여백만 되돌립니다.
+    .local_sch01 .frm_input,
+    .local_sch01 select,
+    .local_sch02 .frm_input,
+    .local_sch02 select,
+    .local_sch03 .frm_input,
+    .local_sch03 select,
+    .local_sch .sch_input,
+    .local_sch select {
+        float: none;
+        margin: 0;
+    }
+
+    // 검색 버튼: 돋보기 이미지 대신 '검색' 글자를 보이는 주요 버튼
+    .local_sch01 .btn_submit,
+    .local_sch02 .btn_submit,
+    .local_sch03 .btn_submit,
+    .local_sch .btn_sch,
+    .local_sch .btn_sch2 {
+        float: none;
+        width: auto;
+        @include button-base;
+        @include button-primary;
+    }
+
+    .local_sch02,
+    .local_sch03 {
+        display: flex;
+        flex-direction: column;
+        gap: $space-3;
+
+        // 기본 관리자 CSS 의 clearfix(::after)가 빈 줄로 잡혀 아래 여백이 12px 더 생기므로 없앱니다.
+        &::before,
+        &::after {
+            display: none;
+        }
+
+        > div,
+        .sch_last {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: $space-2;
+            margin: 0;
+        }
+
+        strong {
+            width: 80px;
+            color: var(--adm-text-sub);
+            @include text(caption, $weight-bold);
+        }
+
+        button {
+            @include button-base;
+        }
+    }
+
+    // 안내: 회색 페이지 바탕 위에 놓이므로 흰색(카드와 같은 색)으로 채웁니다.
+    .local_desc,
+    .local_desc01,
+    .local_desc02 {
+        min-width: 0; // 기본 관리자 CSS 의 .local_desc02 최소 폭 960px 해제
+        margin: 0 0 $space-4;
+        padding: $space-5;
+        border: 0;
+        border-radius: $radius;
+        background: var(--adm-surface);
+        color: var(--adm-text-sub);
+        @include text(body, $weight-light);
+
+        // 기본 관리자 CSS 의 .local_desc02 p 줄높이(1.8em)를 본문 줄높이 24px 로 통일
+        p,
+        li {
+            margin: 0;
+            color: inherit;
+            font-weight: inherit;
+            line-height: $line-body;
+        }
+
+        // 문단 사이 4px
+        p + p {
+            margin-top: $space-1;
+        }
+
+        // 문단 묶음을 나누는 줄바꿈(<br>)은 빈 줄 대신 12px 간격으로
+        // (br 자체는 크기를 정할 수 없어 숨기고, 뒤 문단에 여백을 줍니다)
+        > br {
+            display: none;
+        }
+
+        > br + p {
+            margin-top: $space-3;
+        }
+
+        // 강조: 굵은 진한 글자 (빨강은 strong 경고에만)
+        b {
+            color: var(--adm-text);
+            font-weight: $weight-bold;
+        }
+
+        strong {
+            color: var(--adm-danger);
+            font-weight: $weight-bold;
+        }
+
+        // 글자 링크만 포인트 컬러 (버튼 모양 링크 .btn_03 등은 버튼 색 그대로)
+        a:not([class*="btn"]) {
+            color: theme-color();
+            text-decoration: none;
+
+            b {
+                color: inherit;
+            }
+
+            &:hover {
+                text-decoration: underline;
+                text-underline-offset: 3px;
+            }
+        }
+
+        li {
+            margin: $space-1 0;
+        }
+    }
+
+    // 내용이 없는 안내 카드는 숨김 (js 의 hideEmptyDesc 가 .is-empty 지정)
+    .local_desc.is-empty {
+        display: none;
+    }
+
+    // 흰 카드·표 안에 들어간 안내는 옅은 회색으로 구분합니다.
+    .adm_card,
+    .adm_tbl,
+    .tbl_wrap,
+    .new_win_con {
+        .local_desc,
+        .local_desc01,
+        .local_desc02 {
+            background: var(--adm-surface-2);
+        }
+    }
+
+    .session_del p,
+    .od_test_caution {
+        border: 0;
+        border-radius: $radius;
+        background: var(--adm-danger-soft);
+        color: var(--adm-danger);
+    }
+
+    // 웹에디터(SmartEditor2) 위 [단축키 일람] 버튼과 펼친 단축키 표
+    // 기본 관리자 CSS 는 높이 23px 에 글자 줄높이가 맞지 않아 글자가 잘리고, 색을 !important 로 고정하므로 같은 방식으로 덮어씁니다.
+    .cke_sc {
+        margin: 0 0 $space-2;
+        text-align: right;
+    }
+
+    .btn_cke_sc,
+    .btn_cke_sc_close {
+        display: inline-flex;
+        align-items: center;
+        height: $control-sm;
+        padding: 0 $space-3;
+        border: 0 !important;
+        border-radius: $radius;
+        background: var(--adm-btn-bg) !important;
+        color: var(--adm-text-sub) !important;
+        @include text(caption);
+        line-height: 1;
+        vertical-align: middle;
+        cursor: pointer;
+        @include transition(background-color, color);
+
+        &:hover {
+            background: theme-color(soft) !important;
+            color: theme-color() !important;
+        }
+    }
+
+    .cke_sc_def {
+        margin: 0 0 $space-2;
+        padding: $space-4;
+        border: 0;
+        border-radius: $radius;
+        background: var(--adm-surface-2);
+        color: var(--adm-text);
+        @include text(caption);
+
+        dt,
+        dd {
+            padding: $space-2 0;
+            border-bottom: 1px solid var(--adm-line-soft);
+        }
+
+        dt {
+            color: var(--adm-text-strong);
+            font-weight: $weight-bold;
+        }
+    }
+
+    // 페이징
+    .pg_wrap {
+        margin: 0 0 $space-5;
+        padding: $space-5 0 0;
+    }
+
+    .pg {
+        display: inline-flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: $space-1;
+    }
+
+    .pg_page,
+    .pg_current {
+        float: none;
+        min-width: $control-md;
+        height: $control-md;
+        margin: 0;
+        padding: 0 $space-2;
+        border: 0;
+        border-radius: $radius !important;
+        background-color: transparent;
+        color: var(--adm-text-sub);
+        @include text(body);
+        line-height: $control-md;
+        text-align: center;
+        @include button-press;
+    }
+
+    // 페이지 번호 호버: 포인트 컬러로 채우고 흰 글자
+    .pg a:focus,
+    .pg a:hover {
+        background-color: theme-color();
+        color: theme-color(text);
+    }
+
+    .pg_current {
+        background: theme-color();
+        color: theme-color(text);
+        font-weight: $weight-bold;
+    }
+
+    // 처음/이전/다음/맨끝은 아이콘 글꼴로 바꿉니다.
+    .pg_start,
+    .pg_prev,
+    .pg_next,
+    .pg_end {
+        position: relative;
+        width: $control-md;
+        padding: 0;
+        background-image: none;
+        text-indent: -9999px;
+        overflow: hidden;
+
+        &::after {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            @include icon(20px, 0);
+            text-indent: 0;
+        }
+    }
+
+    .pg_start::after { content: "first_page"; }
+    .pg_prev::after { content: "chevron_left"; }
+    .pg_next::after { content: "chevron_right"; }
+    .pg_end::after { content: "last_page"; }
+
+    // 사이드뷰 (회원 이름 클릭 메뉴)
+    .sv_wrap .sv {
+        overflow: hidden;
+        border-radius: $radius;
+        background: var(--adm-tip-bg);
+
+        a {
+            color: var(--adm-tip-text);
+            @include text(caption);
+            line-height: $control-sm;
+            opacity: .8;
+
+            &:hover {
+                background: transparent;
+                color: var(--adm-tip-text);
+                opacity: 1;
+            }
+        }
+
+        &::before {
+            border-bottom-color: var(--adm-tip-bg);
+        }
+    }
+
+    // 공통 레이어 팝업 (admin.tail.php)
+    .popup-overlay {
+        background: rgba(0, 0, 0, .32);
+    }
+
+    .popup-content {
+        border-radius: $radius;
+        background: var(--adm-surface);
+        box-shadow: var(--adm-shadow-lg);
+    }
+
+    .popup-header,
+    .popup-footer {
+        border-color: var(--adm-line-soft);
+    }
+
+    .popup-title {
+        color: var(--adm-text-strong);
+        @include text(title, $weight-bold);
+    }
+
+    .popup-body {
+        color: var(--adm-text);
+    }
+
+    // ---------------------------------------------------------
+    // 쇼핑몰 현황 (shop_admin/index.php)
+    // 기본 관리자 CSS 의 float · 절대 위치 배치를 카드 격자로 바꿈
+    //   [주문현황 그래프 | 처리할 주문 · 재고현황] → 결제수단별 주문현황 → [1:1문의 · 상품문의 · 사용후기]
+    // 섹션 바로가기(.sidx_anchor)는 탭으로 바꾸지 않음 (js/adm_theme.js initAnchorTabs)
+    // ---------------------------------------------------------
+    .sidx {
+        display: grid;
+        grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr);
+        align-items: start;
+        gap: $space-5;
+        margin: 0 0 $space-5;
+        padding: 0;
+
+        &::after {
+            content: none;
+        }
+
+        // 태블릿 이하: 그래프 아래로 처리할 주문 · 재고현황
+        @media (max-width: $bp-md) {
+            grid-template-columns: minmax(0, 1fr);
+        }
+    }
+
+    // 카드: 주문현황 · 처리할 주문 · 재고현황 · 결제수단별 · 1:1문의 · 상품문의 · 사용후기
+    #anc_sidx_ord,
+    #anc_sidx_act,
+    #anc_sidx_stock,
+    #anc_sidx_settle,
+    .sidx_cs section {
+        float: none;
+        width: auto;
+        min-width: 0;
+        margin: 0;
+        padding: $space-5;
+        border: 0;
+        @include surface;
+    }
+
+    #sidx_stat {
+        display: flex;
+        flex-direction: column;
+        gap: $space-5;
+        float: none;
+        width: auto;
+        min-width: 0;
+    }
+
+    .sidx h2,
+    #anc_sidx_settle h2 {
+        margin: 0 0 $space-4;
+        padding: 0;
+        color: var(--adm-text-strong);
+        @include text(title, $weight-bold);
+    }
+
+    // 카드 안의 표는 카드 표면을 한 번 더 그리지 않음
+    .sidx .tbl_wrap,
+    #anc_sidx_settle .tbl_wrap {
+        margin: 0;
+        padding: 0;
+    }
+
+    .sidx .adm_tbl,
+    #anc_sidx_settle .adm_tbl {
+        padding: 0;
+        border-radius: 0;
+        background: none;
+        box-shadow: none;
+    }
+
+    // 처리할 주문: "주문 → 입금" 이 두 줄로 접히지 않게
+    #sidx_take_act th,
+    #sidx_take_act .adm_th {
+        white-space: nowrap;
+    }
+
+    #anc_sidx_settle {
+        margin: 0 0 $space-5;
+    }
+
+    // 주문현황 그래프 (최근 7일 주문 · 취소 금액, 막대 높이는 페이지 스크립트가 정함)
+    #sidx_graph {
+        position: relative;
+        height: 320px;
+    }
+
+    #sidx_graph_legend {
+        position: absolute;
+        top: 0;
+        right: 0;
+        left: auto;
+        display: flex;
+        align-items: center;
+        gap: $space-2;
+        color: var(--adm-text-sub);
+        @include text(caption);
+
+        span {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        #legend_order {
+            background: var(--adm-c1);
+        }
+
+        #legend_cancel {
+            margin: 0 0 0 $space-2;
+            background: var(--adm-c2);
+        }
+    }
+
+    // 세로 눈금 금액: 막대 영역(위 40px, 높이 240px)의 가로선 5개(48px 간격)에 맞춤
+    #sidx_graph_price {
+        position: absolute;
+        top: 40px;
+        left: 0;
+        width: 64px;
+        margin: 0;
+        padding: 0;
+
+        li {
+            height: 48px;
+            padding: 0 $space-3 0 0;
+            color: var(--adm-text-muted);
+            text-align: right;
+            @include text(caption);
+            transform: translateY(-10px); // 글자 가운데를 가로선에
+
+            span {
+                display: none;
+            }
+        }
+    }
+
+    #sidx_graph_area {
+        position: absolute;
+        top: 40px;
+        right: 0;
+        left: 64px;
+        width: auto;
+        height: 240px;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        border-bottom: 1px solid var(--adm-line);
+        background: repeating-linear-gradient(to bottom, var(--adm-line-soft) 0 1px, transparent 1px 48px);
+
+        li,
+        .bg0,
+        .bg1 {
+            width: calc(100% / 7);
+            padding: 0;
+            background: transparent;
+        }
+
+        .graph {
+            width: 28%;
+            max-width: 24px;
+            border-radius: $radius-xs $radius-xs 0 0;
+        }
+
+        // 주문 · 취소 막대를 칸 가운데에 나란히 (사이 4px)
+        .order {
+            right: 50%;
+            left: auto;
+            margin-right: 2px;
+            background: var(--adm-c1);
+        }
+
+        .cancel {
+            right: auto;
+            left: 50%;
+            margin-left: 2px;
+            background: var(--adm-c2);
+        }
+
+        #price_tooltip {
+            top: -40px;
+            left: 50%;
+            padding: $space-1 $space-2;
+            border: 0;
+            border-radius: $radius-xs;
+            background: var(--adm-text-strong);
+            color: var(--adm-surface);
+            @include text(caption);
+            transform: translateX(-50%);
+        }
+    }
+
+    #sidx_graph_date {
+        position: absolute;
+        top: 288px;
+        right: 0;
+        left: 64px;
+        width: auto;
+        margin: 0;
+        padding: 0;
+        border: 0;
+
+        li {
+            width: calc(100% / 7);
+            color: var(--adm-text-sub);
+            text-align: center;
+            @include text(caption);
+
+            span {
+                display: none;
+            }
+        }
+    }
+
+    // 1:1문의 · 상품문의 · 사용후기: 같은 너비 카드 (좁으면 자동으로 줄 수를 줄임)
+    .sidx_cs {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        margin: 0;
+
+        .ul_wrap {
+            margin: 0 0 $space-4;
+            padding: 0;
+        }
+
+        .empty_list {
+            padding: $space-5 0;
+            border: 0;
+            color: var(--adm-text-muted);
+            text-align: center;
+            @include text(body, $weight-light);
+        }
+
+        .btn_list03 {
+            display: flex;
+            justify-content: flex-end;
+            margin: 0;
+            padding: 0;
+
+            a {
+                color: var(--adm-text-sub);
+                @include text(caption);
+
+                &:hover {
+                    color: theme-color();
+                }
+            }
+        }
+    }
+
+    .ul_01 li {
+        border-bottom: 1px solid var(--adm-line-soft);
+    }
+}

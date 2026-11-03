@@ -1,0 +1,200 @@
+@use "tokens" as *;
+@use "theme" as *;
+@use "mixins" as *;
+
+// =========================================================
+// 본문 틀: 본문 영역, 페이지 제목, 상단 일괄 처리 버튼, 하단, 새창(팝업) 페이지
+// 본문은 아이콘 메뉴(80) + 하위 메뉴 패널(240) 오른쪽을 좌우 40px($content-gutter) 여백으로 꽉 채웁니다.
+// =========================================================
+@mixin styles {
+    #wrapper {
+        min-height: 100vh;
+    }
+
+    #container,
+    #container.container-small {
+        min-width: 1024px;
+        height: auto;
+        min-height: 100vh;
+        margin-top: 0;
+        padding: 0 0 0 ($rail-width + $flyout-width);
+        background: var(--adm-bg);
+    }
+
+    #container_title,
+    #container.container-small #container_title {
+        position: static;
+        width: auto;
+        max-width: none;
+        margin: 0;
+        padding: $space-6 $content-gutter $space-5;
+        border: 0;
+        background: none;
+        color: var(--adm-text-strong);
+        @include text(heading, $weight-bold);
+        z-index: auto;
+    }
+
+    .container_wr {
+        max-width: none;
+        margin: 0;
+        padding: 0 $content-gutter $space-8;
+    }
+
+    // 대시보드는 페이지 제목 대신 카드로 시작합니다.
+    &.adm-dashboard #container_title {
+        @include sound-only;
+    }
+
+    // 목록 상단의 일괄 처리 버튼: 페이지 제목 영역 오른쪽 위에 둡니다.
+    // 기본 관리자 CSS 는 화면에 고정(fixed)해서 스크롤하면 표 위를 덮으므로, 페이지 기준(absolute)으로 바꿔 제목과 함께 스크롤되게 합니다.
+    //   top = 제목 위 여백과 같은 32px
+    //   right = 본문 오른쪽 여백과 같은 40px
+    #container {
+        position: relative;
+    }
+
+    .btn_fixed_top {
+        position: absolute;
+        display: flex;
+        align-items: center;
+        gap: $space-2;
+        top: $space-6;
+        right: $content-gutter;
+        z-index: 800;
+    }
+
+    // 버튼 줄(.btn_confirm)을 겸하는 경우 버튼 줄의 위아래 여백(24px)을 없애 위치를 같게 합니다.
+    .btn_fixed_top.btn_confirm {
+        margin: 0;
+    }
+
+    // ---------------------------------------------------------
+    // 하단: 구분선이 본문 카드와 같은 좌우 끝에서 시작하고 끝나도록 여백을 margin 으로 둡니다.
+    // ---------------------------------------------------------
+    #ft {
+        width: auto;
+        max-width: none;
+        margin: 0 $content-gutter;
+        padding: $space-5 0 $space-8;
+        border-top: 1px solid var(--adm-line-soft);
+        background: none;
+        color: var(--adm-text-muted);
+        text-align: left;
+
+        p {
+            @include text(caption, $weight-light);
+            line-height: $line-caption;
+        }
+
+        // 문장 끝 줄바꿈 (js 가 넣음): 640px 이하에서만 보임 (_responsive.scss)
+        .adm_ft_br {
+            display: none;
+        }
+    }
+
+    // TOP 버튼: 화살표 없이 글자만, 그림자 없음.
+    //  호버(1024px 이상): 배경이 포인트 컬러로 채워지고 글자는 포인트 컬러 위 글자색 (움직임 없음)
+    //        터치 화면에서는 누른 뒤 호버 상태가 남으므로 넓은 화면에서만 적용합니다.
+    //  누름: 살짝 눌려 들어감
+    .scroll_top {
+        display: grid;
+        place-items: center;
+        // 화면 끝에서 16px (알림 패널·좌측 메뉴 버튼과 같은 간격)
+        right: $space-4;
+        bottom: $space-4;
+        width: $control-lg;
+        height: $control-lg;
+        padding: 0;
+        overflow: hidden;
+        border: 0;
+        border-radius: $radius;
+        background: var(--adm-surface);
+        color: var(--adm-text-sub);
+        box-shadow: none;
+        cursor: pointer;
+        transition: color .2s $ease, background-color .2s $ease, transform .3s cubic-bezier(.34, 1.56, .64, 1);
+
+        .top_img {
+            display: none;
+        }
+
+        .top_txt {
+            @include text(caption, $weight-bold);
+            letter-spacing: .04em;
+        }
+
+        @media (min-width: 1024px) {
+            &:hover {
+                background: theme-color();
+                color: theme-color(text);
+            }
+        }
+
+        &:active {
+            transform: scale(.94);
+            transition-duration: .06s;
+        }
+    }
+
+    // ---------------------------------------------------------
+    // 새창(팝업) 페이지
+    // ---------------------------------------------------------
+    .new_win {
+        background: var(--adm-bg);
+
+        h1 {
+            padding: $space-5 $space-5 $space-4;
+            border-bottom: 1px solid var(--adm-line-soft);
+            background: var(--adm-surface);
+            color: var(--adm-text-strong);
+            @include text(title, $weight-bold);
+        }
+    }
+
+    .new_win_con {
+        margin: $space-4;
+        padding: $space-5;
+        @include surface;
+    }
+}
+
+// 표 변환이 끝날 때까지 본문을 잠시 숨겨 깜빡임을 막습니다. (adm_theme.js 가 해제)
+.adm-theme-loading #container #container_title,
+.adm-theme-loading #container .container_wr {
+    opacity: 0;
+}
+
+// 페이지 입장: 준비가 끝나면(js 가 .adm-theme-enter 를 붙임) 제목 → 본문 순서로 살짝 떠오르며 나타납니다.
+// 주의: transform 으로 움직이는 요소는 움직이는 동안(및 끝난 뒤 값을 유지하는 동안) 안쪽 absolute/fixed 요소의
+// 위치 기준이 됩니다. 그래서 끝난 뒤 값을 남기지 않도록 fill-mode 는 backwards 만 쓰고,
+// 상단 버튼(.btn_fixed_top)을 품은 요소(목록 form 등)는 움직이지 않고 투명도만 바꿉니다.
+.adm-theme-enter #container #container_title {
+    animation: adm-page-in $enter-page $enter-ease backwards;
+}
+
+// 본문 틀(.container_wr) 바로 아래 요소들만 움직입니다. (카드 묶음은 아래에서 카드별로 따로 움직임)
+.adm-theme-enter #container .container_wr > :not(.btn_fixed_top):not(.dash):not(.rpt_kpis):not(.rpt_grid):not(:has(.btn_fixed_top)) {
+    animation: adm-page-in $enter-page $enter-ease .1s backwards;
+}
+
+.adm-theme-enter #container .container_wr > :has(.btn_fixed_top) {
+    animation: adm-fade-in $enter-page $enter-ease .1s backwards;
+}
+
+// 대시보드·통계 화면: 카드가 하나씩 차례로 떠오릅니다.
+.adm-theme-enter {
+    .dash > *,
+    .rpt_kpis > *,
+    .rpt_grid > * {
+        animation: adm-card-in $enter-card $enter-ease backwards;
+    }
+
+    @for $i from 1 through 10 {
+        .dash > :nth-child(#{$i}),
+        .rpt_kpis > :nth-child(#{$i}),
+        .rpt_grid > :nth-child(#{$i}) {
+            animation-delay: .15s + $i * $enter-step;
+        }
+    }
+}

@@ -1,0 +1,368 @@
+@use "tokens" as *;
+@use "theme" as *;
+@use "mixins" as *;
+
+// =========================================================
+// 이 프로젝트에서 더한 관리자 스타일
+//  - 그누보드 기본 관리자 CSS(adm/css/admin.css)에 있던 것 중 테마가 기대하는 것 (화면낭독 전용, 좌측 메뉴 고정)
+//  - 상담 문의 목록 · 상세, 순위 목록(유입 경로 · 많이 본 페이지 · 봇), 로그인
+// =========================================================
+.sound_only {
+	@include sound-only;
+}
+
+@mixin styles {
+	// 그누보드 기본 관리자 CSS의 좌측 메뉴 위치 (테마는 이 위에 덮어씀)
+	#gnb {
+		position: fixed;
+		top: 0;
+		left: 0;
+	}
+
+	#gnb .gnb_li > .btn_op .material-symbols-rounded {
+		pointer-events: none;
+	}
+
+	#container {
+		margin-top: 0;
+	}
+
+	// ---------------------------------------------------------
+	// 목록 위 도구: 상태 탭 | 검색 · 내려받기
+	// ---------------------------------------------------------
+	.ct_tools {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: $space-3;
+		margin: 0 0 $space-4;
+	}
+
+	.ct_tabs {
+		display: flex;
+		flex-wrap: wrap;
+		gap: $space-1;
+
+		a {
+			@include button-base;
+
+			b {
+				margin-left: $space-1;
+				color: var(--adm-text-muted);
+				font-weight: $weight-bold;
+			}
+
+			&.is-active {
+				background: theme-color();
+				color: theme-color(text);
+				font-weight: $weight-bold;
+				--adm-btn-fill: #{theme-color()};
+
+				b {
+					color: inherit;
+				}
+			}
+		}
+	}
+
+	.ct_search {
+		display: flex;
+		flex-wrap: wrap;
+		gap: $space-2;
+
+		.frm_input {
+			width: 280px;
+		}
+	}
+
+	.ct_note {
+		margin: 0 0 $space-4;
+		padding: $space-3 $space-4;
+		border-radius: $radius;
+		background: var(--adm-success-soft);
+		color: var(--adm-success);
+		@include text(body, $weight-bold);
+	}
+
+	// 목록 표: 줄 전체를 누르면 상세로
+	.ct_list {
+		tbody tr {
+			cursor: pointer;
+			@include transition(background-color);
+		}
+
+		tbody tr:hover td {
+			background: theme-color(tint);
+		}
+
+		td {
+			vertical-align: middle;
+		}
+
+		.td_date,
+		.td_tel,
+		.td_name {
+			white-space: nowrap;
+		}
+
+		.td_name a {
+			color: var(--adm-text-strong);
+			font-weight: $weight-bold;
+		}
+
+		.td_snip {
+			max-width: 360px;
+			color: var(--adm-text-sub);
+			@include ellipsis;
+		}
+
+		.empty_table {
+			padding: $space-8 $space-5;
+			color: var(--adm-text-muted);
+			text-align: center;
+			@include text(body, $weight-light);
+		}
+	}
+
+	// 상태 배지
+	.adm_badge.is-new {
+		background: var(--adm-danger);
+		color: #ffffff;
+	}
+
+	.adm_badge.is-contacted {
+		background: var(--adm-warning);
+		color: #ffffff;
+	}
+
+	.adm_badge.is-done {
+		background: theme-color();
+		color: theme-color(text);
+	}
+
+	// ---------------------------------------------------------
+	// 상세
+	// ---------------------------------------------------------
+	.ct_head {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: $space-3;
+		margin: 0 0 $space-4;
+	}
+
+	.ct_detail {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) 360px;
+		align-items: start;
+		gap: $space-5;
+	}
+
+	.ct_info {
+		display: grid;
+		grid-template-columns: 112px minmax(0, 1fr);
+		gap: $space-3 $space-4;
+
+		dt {
+			color: var(--adm-text-muted);
+			@include text(body, $weight-light);
+		}
+
+		dd {
+			color: var(--adm-text-strong);
+			@include text(body);
+			overflow-wrap: anywhere;
+
+			a {
+				text-decoration: underline;
+				text-underline-offset: 3px;
+			}
+		}
+	}
+
+	.ct_content {
+		margin-top: $space-5;
+		padding: $space-4;
+		border-radius: $radius;
+		background: var(--adm-surface-2);
+		color: var(--adm-text-strong);
+		@include text(body);
+		white-space: pre-wrap;
+		word-break: keep-all;
+		overflow-wrap: anywhere;
+	}
+
+	.ct_form {
+		display: flex;
+		flex-direction: column;
+		gap: $space-4;
+
+		label {
+			display: block;
+			margin-bottom: $space-2;
+			color: var(--adm-text-muted);
+			@include text(caption);
+		}
+
+		select,
+		textarea {
+			width: 100%;
+		}
+
+		textarea {
+			min-height: 160px;
+			line-height: $line-body;
+		}
+
+		.adm_btn {
+			width: 100%;
+		}
+	}
+
+	.ct_danger {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: $space-3;
+		margin-top: $space-5;
+		padding-top: $space-5;
+		border-top: 1px solid var(--adm-line-soft);
+
+		p {
+			color: var(--adm-text-muted);
+			@include text(caption, $weight-light);
+		}
+	}
+
+	// ---------------------------------------------------------
+	// 순위 목록 (유입 경로 · 많이 본 페이지 · AI·검색 봇): 이름 | 값, 아래 옅은 막대
+	// ---------------------------------------------------------
+	.dash_rank {
+		li + li {
+			border-top: 1px solid var(--adm-line-soft);
+		}
+
+		li {
+			display: grid;
+			grid-template-columns: minmax(0, 1fr) auto;
+			gap: $space-1 $space-3;
+			padding: $space-3 0;
+		}
+	}
+
+	.dash_rank_name {
+		min-width: 0;
+		color: var(--adm-text-strong);
+		@include text(body);
+		@include ellipsis;
+
+		small {
+			margin-left: $space-2;
+			color: var(--adm-text-muted);
+			@include text(caption, $weight-light);
+		}
+	}
+
+	.dash_rank_value {
+		color: var(--adm-text-strong);
+		@include text(caption, $weight-bold);
+	}
+
+	.dash_rank_track {
+		grid-column: 1 / -1;
+		height: 4px;
+		border-radius: 2px;
+		background: var(--adm-surface-2);
+		overflow: hidden;
+
+		i {
+			display: block;
+			height: 100%;
+			border-radius: inherit;
+			background: var(--adm-c1);
+			transform-origin: left;
+			animation: adm-bar-grow-x 1s $enter-ease .4s backwards;
+		}
+	}
+
+	.dash_rank.is-c2 .dash_rank_track i {
+		background: var(--adm-c2);
+	}
+
+	.dash_rank.is-c3 .dash_rank_track i {
+		background: var(--adm-c3);
+	}
+
+	// ---------------------------------------------------------
+	// 로그인
+	// ---------------------------------------------------------
+	.adm_login {
+		display: grid;
+		place-items: center;
+		min-height: 100vh;
+		padding: $space-5;
+
+		form {
+			width: 100%;
+			max-width: 400px;
+			padding: $space-6;
+			@include surface;
+			--adm-btn-bg: var(--adm-surface-2);
+		}
+
+		h1 {
+			color: var(--adm-text-strong);
+			@include text(heading, $weight-bold);
+		}
+
+		p {
+			margin: $space-2 0 $space-5;
+			color: var(--adm-text-muted);
+			@include text(body, $weight-light);
+		}
+
+		label {
+			display: block;
+			margin-bottom: $space-2;
+			color: var(--adm-text-sub);
+			@include text(caption);
+		}
+
+		.frm_input {
+			width: 100%;
+		}
+
+		.adm_btn {
+			width: 100%;
+			margin-top: $space-4;
+		}
+
+		.adm_login_err {
+			margin: $space-3 0 0;
+			color: var(--adm-danger);
+			@include text(caption);
+		}
+
+		.adm_login_hint {
+			margin: $space-4 0 0;
+			@include text(caption, $weight-light);
+		}
+	}
+
+	@media (max-width: $bp-md) {
+		.ct_detail {
+			grid-template-columns: minmax(0, 1fr);
+		}
+
+		.ct_search,
+		.ct_search .frm_input {
+			width: 100%;
+		}
+
+		.ct_search .frm_input {
+			flex: 1 1 auto;
+		}
+	}
+}

@@ -1,0 +1,683 @@
+@use "tokens" as *;
+@use "theme" as *;
+@use "mixins" as *;
+
+// =========================================================
+// ul/li 로 변환된 표 (js/adm_theme.js)
+//
+// <div class="adm_tbl adm_tbl_list|adm_tbl_form">
+//   <ul class="adm_thead|adm_tbody|adm_tfoot"><li class="adm_tr"><div class="adm_cell adm_th|adm_td">
+//
+// 행(li)과 묶음(ul)은 display: contents 로 두고, 셀이 CSS Grid 칸에 직접 배치됩니다.
+// =========================================================
+
+// 구조 요소의 display 는 우선순위 0 으로 둬서 .cf_tr_hide 같은 숨김 클래스가 그대로 동작하게 합니다.
+:where(.adm_tbl) > :where(.adm_thead, .adm_tbody, .adm_tfoot),
+:where(.adm_thead, .adm_tbody, .adm_tfoot) > :where(.adm_tr) {
+    display: contents;
+}
+
+:where(.adm_cell) {
+    display: flex;
+    align-items: center;
+}
+
+:where(.adm_tbl_list .adm_cell) {
+    text-align: center;
+}
+
+:where(.adm_tbl_form .adm_cell) {
+    text-align: left;
+}
+
+@mixin styles {
+    .tbl_wrap {
+        margin: 0 0 $space-4;
+    }
+
+    // 카드 안쪽 여백 16px: 검색 영역(안쪽 여백 16px)의 입력칸과 머리 행 띠의 왼쪽 끝이 같은 선에 옵니다.
+    .adm_tbl {
+        display: grid;
+        width: -moz-fit-content;
+        width: fit-content;
+        min-width: 100%;
+        margin: 0;
+        padding: $space-4;
+        border: 0;
+        @include surface($radius-md);
+        color: var(--adm-text);
+        @include text(body);
+        text-align: left;
+    }
+
+    // 다른 CSS 의 li:after 클리어픽스 등이 그리드 칸을 차지하지 않게 합니다.
+    .adm_thead,
+    .adm_tbody,
+    .adm_tfoot,
+    .adm_tr {
+        &::before,
+        &::after {
+            content: none !important;
+        }
+    }
+
+    // jQuery .show() 가 li 에 list-item/table-row 등을 넣어도 그리드 배치가 유지되게 합니다.
+    .adm_tr[style*="list-item"],
+    .adm_tr[style*="table-row"],
+    .adm_tr[style*="display: block"],
+    .adm_tr[style*="display:block"] {
+        display: contents !important;
+    }
+
+    .adm_cell[style*="table-cell"] {
+        display: flex !important;
+    }
+
+    .adm_cell {
+        width: auto;
+        min-width: 0;
+        height: auto;
+        margin: 0;
+        padding: $space-3 $space-4;
+        border: 0;
+        border-bottom: 1px solid var(--adm-line-soft);
+        background: var(--adm-surface);
+        color: var(--adm-text);
+        @include text(body);
+        // word-break: break-word 는 열의 최소 너비를 글자 1개로 만들어 "galler/y" 처럼 끊기므로 쓰지 않습니다.
+        // keep-all: 한글 단어 중간에서 줄바꿈하지 않음 / overflow-wrap: 칸보다 긴 단어만 예외적으로 줄바꿈
+        word-break: keep-all;
+        overflow-wrap: break-word;
+        @include transition(background-color);
+    }
+
+    // 목록 셀: 좌우 8px (카드 안쪽 여백 16px 안쪽)
+    .adm_tbl_list .adm_cell {
+        padding: $space-3 $space-2;
+    }
+
+    // config.php 의 hide_columns 로 숨긴 열 (입력값은 그대로 전송됩니다)
+    .adm_cell.adm_col_hidden {
+        display: none !important;
+    }
+
+    .adm_cell_in {
+        flex: 1 1 auto;
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    .adm_caption {
+        @include sound-only;
+    }
+
+    // 머리 행: 회색 띠 없이 흰 바탕 + 작은 연회색 글자 + 아래 얇은 선 하나
+    .adm_thead .adm_cell {
+        border-bottom: 1px solid var(--adm-line);
+        background: var(--adm-surface);
+        color: var(--adm-text-muted);
+        @include text(caption);
+        white-space: nowrap;
+
+        a {
+            color: inherit;
+            font-size: inherit;
+            font-weight: inherit;
+            text-decoration: none;
+
+            &:hover {
+                color: theme-color();
+            }
+        }
+    }
+
+    // 머리 행: 여러 줄이면 안쪽 줄은 선 없이, 마지막 줄 아래에만 선
+    .adm_thead .adm_cell:not(.adm_cell_end) {
+        border-bottom-color: transparent;
+    }
+
+    // 스크롤 시 머리 행 고정 (js 의 initStickyHead 가 .adm_sticky_head 와 줄별 top 을 지정)
+    // 화면 위에 붙어 있는 동안(.is-stuck)만 아래에 옅은 그림자가 생깁니다.
+    .adm_sticky_head > .adm_thead .adm_cell {
+        position: sticky;
+        z-index: 2;
+    }
+
+    .adm_sticky_head > .adm_thead .adm_cell.adm_cell_end::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        height: $space-2;
+        margin-top: 1px;
+        background: linear-gradient(rgba(0, 0, 0, .08), transparent);
+        opacity: 0;
+        pointer-events: none;
+        @include transition(opacity);
+    }
+
+    .adm_sticky_head.is-stuck > .adm_thead .adm_cell.adm_cell_end::after {
+        opacity: 1;
+    }
+
+    // 화면 위에 붙어 있는 동안은 머리 행 윗모서리를 각지게
+    .adm_sticky_head.is-stuck > .adm_thead .adm_cell {
+        border-radius: 0;
+    }
+
+    // 목록 행: 레코드 묶음(rowspan 으로 이어진 행) 사이에만 구분선을 긋습니다.
+    .adm_tbody .adm_cell:not(.adm_cell_end) {
+        border-bottom-color: transparent;
+    }
+
+    .adm_tbl_grouped .adm_tbody {
+        .adm_cell:not(.adm_cell_start) {
+            padding-top: $space-1;
+        }
+
+        .adm_cell:not(.adm_cell_end) {
+            padding-bottom: $space-1;
+        }
+    }
+
+    // 행에 마우스를 올려도 배경을 칠하지 않음 (관리자 전체 — 입력칸이 있는 목록에서 칸이 배경에 묻혀 보였음)
+    // js 의 .is-hover 는 남아 있지만 스타일은 주지 않습니다.
+
+    .adm_tbl_list .adm_tbody .adm_th {
+        color: var(--adm-text-strong);
+        font-weight: $weight-bold;
+    }
+
+    .adm_tr.bg1 > .adm_cell {
+        background: color-mix(in srgb, var(--adm-surface-2) 40%, var(--adm-surface));
+    }
+
+    .adm_tr.bg0cancel > .adm_cell,
+    .adm_tr.bg1cancel > .adm_cell {
+        background: var(--adm-danger-soft);
+    }
+
+    .adm_tfoot .adm_cell {
+        border-top: 1px solid var(--adm-line);
+        border-bottom: 0;
+        background: var(--adm-surface-2);
+        color: var(--adm-text-strong);
+        font-weight: $weight-bold;
+    }
+
+    // ---------------------------------------------------------
+    // 설정 폼 (th + td) : 환경설정, 회원 수정 등
+    //  - 항목명은 회색 칸 없이 굵은 글자로, 첫 입력칸 가운데 높이에 맞춰 위쪽 정렬
+    //  - 도움말(.frm_info)은 js 가 입력칸 아래로 옮기고 작은 글자로 표시
+    //  - 한 줄에 두 항목(th td th td)인 경우 두 번째 항목 앞에 세로 구분선
+    // ---------------------------------------------------------
+    .adm_tbl_form .adm_cell {
+        align-items: flex-start;
+        border-bottom-color: var(--adm-line-soft);
+    }
+
+    .adm_tbl_form .adm_th {
+        // 입력칸(40px)이 td 위쪽 여백 16px 에서 시작하므로 글자(24px)를 그 가운데에 맞춥니다.
+        padding: ($space-4 + ($control-md - $line-body) * .5) $space-4 $space-4 $space-5;
+        background: transparent;
+        color: var(--adm-text-strong);
+        @include text(body, $weight-bold);
+
+        label {
+            font-weight: inherit;
+        }
+    }
+
+    .adm_tbl_form .adm_td {
+        padding: $space-4 $space-5 $space-4 $space-2;
+        color: var(--adm-text);
+        line-height: $control-md;
+    }
+
+    .adm_tbl_form .adm_th:not(.adm_first_col) {
+        padding-left: $space-6;
+        border-left: 1px solid var(--adm-line-soft);
+    }
+
+    // 입력칸 사이 간격과 뒤따르는 단위 글자("점", "일") 간격
+    // 한 줄 높이(40px) = 입력칸 높이이므로 세로 여백은 두지 않고, 줄바꿈(br)으로 쌓인 입력칸만 8px 띄웁니다.
+    .adm_tbl_form .adm_td {
+        .frm_input,
+        select,
+        .btn_frmline,
+        .btn {
+            margin: 0 $space-2 0 0;
+            vertical-align: middle;
+        }
+
+        textarea {
+            margin: 0;
+            line-height: $line-body;
+        }
+
+        // 라디오/체크박스 묶음: 선택지 사이를 넓게, 이름은 줄바꿈하지 않음 (칸 자체의 여백은 _forms.scss)
+        input[type="radio"] + label,
+        input[type="checkbox"] + label {
+            margin-right: $space-4;
+            white-space: nowrap;
+        }
+
+        br + .frm_input,
+        br + select,
+        br + .btn_frmline {
+            margin-top: $space-2;
+        }
+    }
+
+    // 도움말: 입력칸 아래 작은 회색 글자
+    .adm_tbl_form .frm_info {
+        display: block;
+        margin: 0 0 $space-1;
+        padding: 0;
+        color: var(--adm-text-muted);
+        @include text(caption, $weight-light);
+        line-height: $line-caption + $space-1;
+
+        + .frm_info {
+            margin-top: -$space-1;
+        }
+
+        strong,
+        b {
+            color: var(--adm-text-sub);
+            font-weight: $weight-bold;
+        }
+    }
+
+    // 체크박스·라디오만 있는 칸의 도움말은 선택지 이름 글자 시작선에 맞춥니다. (체크박스 20px + 간격 8px)
+    // 이름표(label) 없이 체크박스만 있는 칸(예: 게시판 카운트 조정)은 들여쓰지 않고 체크박스와 같은 선에서 시작합니다.
+    .adm_tbl_form .adm_cell_in:has(> input[type="checkbox"] + label, > input[type="radio"] + label):not(:has(.frm_input, select, textarea, input[type="file"])) > .frm_info {
+        padding-left: $space-5 + $space-1;
+    }
+
+    // 입력칸 앞의 짧은 글 (js 가 .adm_td_prefix 로 감쌈, 예: "수정하면 [60] 일")
+    // 입력칸 위 작은 글자로 올려서 입력칸이 다른 줄과 같은 왼쪽 끝에서 시작하게 합니다.
+    .adm_tbl_form .adm_td_prefix {
+        display: block;
+        margin-bottom: $space-1;
+        color: var(--adm-text-sub);
+        @include text(caption);
+    }
+
+    // 그 줄의 항목명도 입력칸 높이까지 내립니다. (작은 글자 20px + 간격 4px)
+    .adm_tbl_form .adm_th:has(+ .adm_td .adm_td_prefix) {
+        padding-top: $space-4 + ($control-md - $line-body) * .5 + $line-caption + $space-1;
+    }
+
+    // 여분필드 (제목 이름표 + 입력, 값 이름표 + 입력)
+    // 이름표 열과 입력칸 열을 격자로 맞춥니다. 칸이 넓으면 한 줄, 좁으면 제목/값 두 줄로 쌓습니다.
+    .adm_cell.td_extra {
+        container-type: inline-size;
+
+        .adm_cell_in {
+            display: grid;
+            grid-template-columns: max-content minmax(0, 1fr);
+            align-items: center;
+            gap: $space-2 $space-3;
+
+            @container (min-width: 640px) {
+                grid-template-columns: max-content minmax(0, 1fr) max-content minmax(0, 2fr);
+            }
+        }
+
+        label {
+            color: var(--adm-text-sub);
+            white-space: nowrap;
+        }
+
+        .frm_input {
+            width: 100%;
+            margin: 0;
+        }
+    }
+
+    // 그룹적용 / 전체적용 체크박스: 한 줄로
+    .adm_cell.td_grpset .adm_cell_in {
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: center;
+        white-space: nowrap;
+
+        label:last-child {
+            margin-right: 0;
+        }
+    }
+
+    // 필수 입력 표시(모서리 삼각형 이미지)는 폼·검색·목록 어디서든 없앱니다.
+    // (선택상자는 화살표 배경 이미지를 쓰므로 제외)
+    input.required,
+    textarea.required {
+        background-image: none !important;
+    }
+
+    // 마지막 행과 모서리 (카드 안쪽 여백 8px 안의 머리 행 띠는 4px 로 살짝만 둥글게)
+    .adm_cell.adm_last_row {
+        border-bottom: 0;
+    }
+
+    .adm_cell.adm_first_row.adm_first_col { border-top-left-radius: $radius-xs; }
+    .adm_cell.adm_first_row.adm_last_col { border-top-right-radius: $radius-xs; }
+    .adm_cell.adm_last_row.adm_first_col { border-bottom-left-radius: $radius-xs; }
+    .adm_cell.adm_last_row.adm_last_col { border-bottom-right-radius: $radius-xs; }
+
+    // 자료 없음
+    .adm_cell.empty_table,
+    .adm_cell.empty_list,
+    td.empty_table {
+        padding: $space-8 $space-5 !important;
+        color: var(--adm-text-muted);
+        @include text(body, $weight-light);
+        text-align: center;
+    }
+
+    // ---------------------------------------------------------
+    // 선택지 표 (js 의 markChoiceTable: 머리 행 없이 행마다 라디오 하나, 예: 짧은주소 설정)
+    // 구분선 대신 4px 간격의 선택 카드로 보이고, 선택된 행은 포인트 컬러로 채웁니다.
+    // ---------------------------------------------------------
+    .adm_tbl_choice {
+        row-gap: $space-1;
+        padding: $space-2;
+
+        .adm_cell {
+            justify-content: flex-start;
+            padding: $space-3 $space-4;
+            border-bottom: 0;
+            border-radius: 0;
+            text-align: left;
+            cursor: pointer;
+            @include transition(background-color, color);
+        }
+
+        .adm_cell.adm_first_col {
+            border-radius: $radius 0 0 $radius;
+        }
+
+        .adm_cell.adm_last_col {
+            border-radius: 0 $radius $radius 0;
+            color: var(--adm-text-muted);
+            @include text(body, $weight-light);
+            word-break: break-all;
+        }
+
+        .adm_tr:has(input[type="radio"]:checked) > .adm_cell {
+            background: theme-color(soft);
+        }
+
+        .adm_tr:has(input[type="radio"]:checked) > .adm_cell.adm_last_col {
+            color: theme-color();
+        }
+
+        label {
+            margin-left: 0;
+            color: var(--adm-text-strong);
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .adm_tr:has(input[type="radio"]:checked) label {
+            color: theme-color();
+            font-weight: $weight-bold;
+        }
+    }
+
+    // 날짜, 전화번호, 숫자, 이름처럼 줄바꿈되면 읽기 어려운 값
+    .adm_cell.td_name,
+    .adm_cell.td_mbname,
+    .adm_cell.td_mbid,
+    .adm_cell.td_id,
+    .adm_cell.td_idsmall,
+    .adm_cell.td_date,
+    .adm_cell.td_datetime,
+    .adm_cell.td_time,
+    .adm_cell.td_tel,
+    .adm_cell.td_telbig,
+    .adm_cell.td_num,
+    .adm_cell.td_numbig,
+    .adm_cell.td_price,
+    .adm_cell.td_numsum {
+        white-space: nowrap;
+    }
+
+    // 라디오/체크박스 묶음(예: 본인확인)은 가운데 정렬 셀 안에서도 왼쪽 끝을 맞춥니다.
+    .adm_cell.td_mbcert .adm_cell_in {
+        flex: 0 0 auto;
+        margin: 0 auto;
+        text-align: left;
+    }
+
+    .adm_cell input[type="radio"] + label,
+    .adm_cell input[type="checkbox"] + label {
+        margin-left: $space-1;
+        @include text(body);
+    }
+
+    // 관리 버튼은 가로로 나란히 (열 너비를 버튼에 맞춰 넓힙니다)
+    .adm_cell.td_mng .adm_cell_in,
+    .adm_cell.td_mngsmall .adm_cell_in {
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: center;
+        justify-content: center;
+        gap: $space-1;
+
+        .btn,
+        a,
+        button {
+            margin: 0;
+        }
+    }
+
+    // 상태 텍스트 → 배지
+    .adm_cell {
+        .txt_true,
+        .txt_false,
+        .txt_succeed,
+        .txt_fail,
+        .mb_leave_msg,
+        .mb_intercept_msg,
+        .txt_active,
+        .txt_expired {
+            display: inline-flex;
+            align-items: center;
+            height: $space-5;
+            padding: 0 $space-2;
+            border-radius: $radius-sm;
+            @include text(caption, $weight-bold);
+            white-space: nowrap;
+        }
+
+        .txt_true,
+        .txt_succeed,
+        .txt_active {
+            background: var(--adm-success-soft);
+            color: var(--adm-success);
+        }
+
+        .txt_false,
+        .txt_expired,
+        .mb_leave_msg {
+            background: var(--adm-surface-2);
+            color: var(--adm-text-muted);
+        }
+
+        .txt_fail,
+        .mb_intercept_msg {
+            background: var(--adm-danger-soft);
+            color: var(--adm-danger);
+        }
+    }
+
+    // 회원 이름 + 프로필 이미지 (사이드뷰)
+    .sv_member,
+    .sv_guest {
+        display: inline-flex;
+        align-items: center;
+        gap: $space-2;
+        color: var(--adm-text-strong);
+        white-space: nowrap;
+    }
+
+    .sv_wrap .profile_img img,
+    .adm_cell .profile_img img {
+        width: $space-5;
+        height: $space-5;
+        border-radius: $radius-sm;
+        object-fit: cover;
+    }
+
+    // 셀 안 입력 요소
+    .adm_tbl_list .adm_cell .frm_input,
+    .adm_tbl_list .adm_cell select,
+    .adm_tbl_list .adm_cell .tbl_input {
+        height: $control-sm;
+        border-radius: $radius-sm;
+        line-height: $control-sm - 2px;
+    }
+
+    // 목록 행 안의 입력 요소
+    // - width: 100% 만 주면 열 최소 너비 계산에서 0 으로 취급되어 칸이 찌그러지므로 min-width 를 함께 둡니다.
+    // - select 는 가장 긴 선택지 너비를 유지하도록 width: auto 로 둡니다. ("커뮤니E" 처럼 잘리지 않게)
+    .adm_tbl_list .adm_td {
+        .frm_input,
+        .tbl_input,
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            min-width: 96px;
+        }
+
+        input[size="1"],
+        input[size="2"],
+        input[size="3"],
+        input[size="4"] {
+            min-width: 56px;
+            text-align: center;
+        }
+
+        select {
+            width: auto;
+            min-width: 100%;
+        }
+    }
+
+    .adm_tbl_form textarea {
+        min-height: 120px;
+    }
+
+    // 표 안의 표
+    .adm_cell .adm_tbl {
+        padding: 0;
+        border: 1px solid var(--adm-line-soft);
+        border-radius: $radius-sm;
+        box-shadow: none;
+
+        .adm_cell {
+            border-radius: 0;
+        }
+    }
+
+    .adm_tbl .td_chk {
+        width: auto;
+    }
+
+    // 접속자 막대 그래프
+    .adm_cell .visit_bar span {
+        top: -$space-1;
+        height: $space-2;
+        border-radius: $radius-sm;
+        background: theme-color();
+    }
+
+    // ---------------------------------------------------------
+    // 변환하지 않은 표 (config.php 의 skip 대상, Ajax 로 불러온 표)
+    // ---------------------------------------------------------
+    // 변환한 목록과 같은 카드 모양: 흰 카드 + 안쪽 여백 16px (메뉴설정, DB업그레이드 등)
+    .tbl_wrap:has(> table) {
+        padding: $space-4;
+        @include surface;
+        --adm-btn-bg: var(--adm-surface-2);
+    }
+
+    .tbl_wrap > table {
+        width: 100%;
+    }
+
+    .tbl_wrap > table.adm_keep {
+        box-shadow: none;
+    }
+
+    .tbl_head01 thead th,
+    .tbl_head02 thead th,
+    table.adm_keep thead th {
+        padding: $space-3 $space-4;
+        border: 0;
+        border-bottom: 1px solid var(--adm-line);
+        background: var(--adm-surface);
+        color: var(--adm-text-muted);
+        @include text(caption);
+        letter-spacing: 0;
+
+        a {
+            color: inherit;
+            font-size: inherit;
+            text-decoration: none;
+        }
+    }
+
+    .tbl_head01 tbody td,
+    .tbl_head01 tbody th,
+    .tbl_head02 tbody td,
+    .tbl_head02 tbody th {
+        padding: $space-3 $space-4;
+        border: 0;
+        border-bottom: 1px solid var(--adm-line-soft);
+        background: var(--adm-surface);
+        color: var(--adm-text);
+    }
+
+    .tbl_head01 tbody tr:nth-child(even) {
+        background: var(--adm-surface);
+    }
+
+    .tbl_frm01 th {
+        padding: $space-4;
+        border-color: var(--adm-line-soft);
+        background: var(--adm-surface-2);
+        color: var(--adm-text-strong);
+        font-weight: $weight-bold;
+    }
+
+    .tbl_frm01 td {
+        padding: $space-3 $space-4;
+        border-color: var(--adm-line-soft);
+        background: var(--adm-surface);
+    }
+
+    table.adm_keep {
+        border-collapse: separate;
+        border-spacing: 0;
+        @include surface($radius-md);
+
+        > thead > tr:first-child > th:first-child { border-top-left-radius: $radius-md; }
+        > thead > tr:first-child > th:last-child { border-top-right-radius: $radius-md; }
+
+        > tbody > tr:last-child > td,
+        > tbody > tr:last-child > th {
+            border-bottom: 0;
+        }
+    }
+
+    tfoot th,
+    tfoot td {
+        border: 0;
+        border-top: 1px solid var(--adm-line);
+        background: var(--adm-surface-2);
+        color: var(--adm-text-strong);
+    }
+}

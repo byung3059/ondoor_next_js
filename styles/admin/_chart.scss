@@ -1,0 +1,228 @@
+@use "tokens" as *;
+@use "mixins" as *;
+
+// =========================================================
+// 그래프 (js/adm_chart.js)
+// =========================================================
+@mixin styles {
+    .adm_chart {
+        position: relative;
+        width: 100%;
+        height: 240px;
+    }
+
+    .adm_chart_svg {
+        display: block;
+        overflow: visible;
+    }
+
+    .adm_chart_grid {
+        stroke: var(--adm-line-soft);
+        stroke-width: 1;
+    }
+
+    .adm_chart_tick {
+        fill: var(--adm-text-muted);
+        font-family: $font-family;
+        font-size: $font-caption;
+        font-weight: $weight-regular;
+    }
+
+    // 그래프 안쪽에 놓인 눈금 글자(.is-flush): 선·점 위에 겹쳐도 읽히도록 카드 색 테두리를 두릅니다.
+    .adm_chart_ticks.is-inside .adm_chart_tick {
+        stroke: var(--adm-surface);
+        stroke-width: 4px;
+        stroke-linejoin: round;
+        paint-order: stroke;
+    }
+
+    .adm_chart_line {
+        fill: none;
+        stroke-width: 2;
+        stroke-linejoin: round;
+        stroke-linecap: round;
+    }
+
+    .adm_chart_area {
+        opacity: .08;
+        stroke: none;
+    }
+
+    .adm_chart_dot {
+        fill: var(--adm-surface);
+        stroke-width: 2;
+    }
+
+    // 관리자 메인 그래프: 가는 선 (양옆 여백 없는 배치는 js 가 .is-flush 를 보고 처리)
+    .adm_chart.is-flush {
+        .adm_chart_line,
+        .adm_chart_dot {
+            stroke-width: 1.5;
+        }
+    }
+
+    // 첫 등장 (js/adm_chart.js 의 enterLine): 선이 그려지는 동안 면과 점은 숨겼다가 뒤따라 나타납니다.
+    .adm_chart_svg.is-enter {
+        .adm_chart_area,
+        .adm_chart_dot {
+            opacity: 0;
+        }
+    }
+
+    .adm_chart_svg.is-enter.is-drawn {
+        .adm_chart_area {
+            opacity: .08;
+            transition: opacity 1.2s $ease .9s;
+        }
+
+        .adm_chart_dot {
+            opacity: 1;
+            transition: opacity .6s $ease 1.5s;
+        }
+    }
+
+    .adm_chart_guide {
+        stroke: var(--adm-line);
+        stroke-dasharray: 4 4;
+    }
+
+    .adm_chart_tip {
+        position: absolute;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        gap: $space-1;
+        min-width: 128px;
+        padding: $space-2 $space-3;
+        border-radius: $radius-sm;
+        background: var(--adm-tip-bg);
+        color: var(--adm-tip-text);
+        box-shadow: var(--adm-shadow-lg);
+        pointer-events: none;
+
+        &[hidden] {
+            display: none;
+        }
+
+        b {
+            @include text(caption, $weight-bold);
+        }
+
+        span {
+            display: flex;
+            align-items: center;
+            gap: $space-2;
+            @include text(caption);
+        }
+
+        i {
+            width: $space-2;
+            height: $space-2;
+            border-radius: $radius-sm;
+        }
+    }
+
+    // 도넛
+    .adm_donut_wrap {
+        display: grid;
+        grid-template-columns: 160px minmax(0, 1fr);
+        align-items: center;
+        gap: $space-5;
+
+        &.is-stack {
+            grid-template-columns: 1fr;
+            justify-items: center;
+
+            .adm_donut_legend {
+                width: 100%;
+            }
+        }
+    }
+
+    .adm_donut {
+        position: relative;
+        width: 160px;
+        height: 160px;
+
+        &.is-lg {
+            width: 192px;
+            height: 192px;
+        }
+    }
+
+    .adm_donut_svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
+
+    .adm_donut_track {
+        fill: none;
+        stroke: var(--adm-surface-2);
+    }
+
+    .adm_donut_seg {
+        fill: none;
+        @include transition(stroke-dasharray);
+    }
+
+    .adm_donut_center {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+
+        strong {
+            color: var(--adm-text-strong);
+            @include text(heading, $weight-bold);
+        }
+
+        span {
+            color: var(--adm-text-muted);
+            @include text(caption, $weight-light);
+        }
+    }
+
+    .adm_donut_legend {
+        display: flex;
+        flex-direction: column;
+        gap: $space-3;
+
+        li {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: $space-3;
+        }
+    }
+
+    .adm_donut_name {
+        display: inline-flex;
+        align-items: center;
+        gap: $space-2;
+        min-width: 0;
+        color: var(--adm-text-sub);
+        @include text(caption);
+
+        i {
+            flex: 0 0 auto;
+            width: $space-2;
+            height: $space-2;
+            border-radius: $radius-sm;
+        }
+    }
+
+    .adm_donut_value {
+        color: var(--adm-text-strong);
+        @include text(caption, $weight-bold);
+    }
+
+    .adm_donut_empty {
+        justify-content: center !important;
+        color: var(--adm-text-muted);
+        @include text(caption, $weight-light);
+    }
+}

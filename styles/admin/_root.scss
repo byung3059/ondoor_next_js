@@ -1,0 +1,107 @@
+@use "tokens" as *;
+@use "theme" as *;
+
+// =========================================================
+// 색상 변수 (라이트 / 다크)
+// 포인트 컬러는 admin.scss 의 $theme-color 로 정합니다. (_theme.scss)
+// config.php 의 accent 를 지정하면 서버에서 --adm-accent 만 덮어씁니다.
+// =========================================================
+:root {
+    @include theme-variables;
+
+    // 버튼·입력칸 배경. 회색 페이지 위에서는 흰색이고, 흰 카드 안에서는 _buttons.scss 가 옅은 회색으로 바꿉니다.
+    --adm-btn-bg: var(--adm-surface);
+    // 버튼 그림자: 버튼과 뒤 배경이 같은 색일 때만 넣습니다. (지금은 페이지·카드 모두 버튼 색이 배경과 달라 없음)
+    --adm-btn-shadow: none;
+
+    // 바탕·선: 채도를 거의 뺀 회색 (한 톤씩 단계가 보이도록 간격을 고르게)
+    --adm-bg: #f2f2f2;
+    --adm-surface: #ffffff;
+    --adm-surface-2: #f4f4f4; // 입력칸·선택상자·체크박스·카드 안 버튼 등 입력 요소의 회색은 모두 이 한 가지
+    --adm-surface-3: #eaecef;
+    --adm-surface-soft: #f9f9f9; // 흰 패널 위의 아주 옅은 채움 (알림 닫기 버튼 등)
+    --adm-line: #dfe2e6;
+    --adm-line-soft: #eceef1;
+
+    // 글자: 강조 #444(굵기로 구분) / 본문 #444 / 보조 #666 / 흐림 #999
+    --adm-text-strong: #444444;
+    --adm-text: #444444;
+    --adm-text-sub: #666666;
+    --adm-text-muted: #999999;
+
+    // 체크박스·라디오 꺼짐 상태 채움: 입력칸과 같은 회색 (체크 표시는 --adm-line 으로 보이게)
+    --adm-check-off: var(--adm-surface-2);
+
+    // 상태색: 원색 대신 톤을 낮춘 색 (벽돌 빨강 / 세이지 초록 / 황토)
+    --adm-danger: #d64545;
+    --adm-success: #2f9e6b;
+    --adm-warning: #d99a2b;
+
+    // 그래프 색: 포인트 컬러 + 비취 / 라벤더 / 꿀색 / 테라코타 / 슬레이트
+    --adm-c1: var(--adm-accent);
+    --adm-c2: #3aa38f;
+    --adm-c3: #8a7bc8;
+    --adm-c4: #e0a045;
+    --adm-c5: #d9665b;
+    --adm-c6: #8a94a1;
+
+    --adm-shadow: 0 8px 24px rgba(28, 30, 34, .04);
+    --adm-shadow-lg: 0 24px 48px rgba(28, 30, 34, .14);
+    // 흰 배경 위에 놓이는 흰 칩·버튼을 구분하는 연한 그림자
+    --adm-shadow-sm: 0 2px 8px rgba(28, 30, 34, .08), 0 0 0 1px rgba(28, 30, 34, .02);
+    --adm-tip-bg: #222222;
+    --adm-tip-text: #ffffff;
+    --adm-overlay-mix: 12%;
+
+    color-scheme: light;
+}
+
+// 다크 모드: 푸른 기 없는 중성 회색. 아주 검은 바탕 대신 한 단계 밝은 회색 계열로 둡니다.
+[data-theme="dark"] {
+    @include theme-dark-variables;
+
+    --adm-bg: #262626;
+    --adm-surface: #303030;
+    --adm-surface-2: #3a3a3a;
+    --adm-surface-3: #2b2b2b;
+    --adm-surface-soft: #363636;
+    --adm-line: #474747;
+    --adm-line-soft: #3d3d3d;
+
+    --adm-text-strong: #f2f2f2;
+    --adm-text: #d9d9d9;
+    --adm-text-sub: #a8a8a8;
+    --adm-text-muted: #858585;
+
+    --adm-check-off: var(--adm-surface-2);
+
+    // 어두운 배경에서 읽히도록 상태색·그래프 색을 한 단계 밝게
+    --adm-danger: #ea6a64;
+    --adm-success: #4fbf8a;
+    --adm-warning: #e8b04e;
+
+    --adm-c2: #4fc0ac;
+    --adm-c3: #a497e0;
+    --adm-c4: #eab45e;
+    --adm-c5: #ec7b70;
+    --adm-c6: #a3a3a3;
+
+    --adm-shadow: 0 8px 24px rgba(0, 0, 0, .2);
+    --adm-shadow-lg: 0 24px 48px rgba(0, 0, 0, .4);
+    --adm-shadow-sm: 0 2px 8px rgba(0, 0, 0, .28), 0 0 0 1px rgba(255, 255, 255, .04);
+    --adm-tip-bg: #f2f2f2;
+    --adm-tip-text: #222222;
+    --adm-overlay-mix: 20%;
+
+    color-scheme: dark;
+}
+
+// 강조색/상태색의 옅은 배경
+:root,
+[data-theme="dark"] {
+    --adm-accent-soft: color-mix(in srgb, var(--adm-accent) var(--adm-overlay-mix), var(--adm-surface));
+    --adm-accent-tint: color-mix(in srgb, var(--adm-accent) 5%, var(--adm-surface));
+    --adm-danger-soft: color-mix(in srgb, var(--adm-danger) var(--adm-overlay-mix), var(--adm-surface));
+    --adm-success-soft: color-mix(in srgb, var(--adm-success) var(--adm-overlay-mix), var(--adm-surface));
+    --adm-warning-soft: color-mix(in srgb, var(--adm-warning) var(--adm-overlay-mix), var(--adm-surface));
+}

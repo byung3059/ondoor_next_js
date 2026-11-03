@@ -6,7 +6,7 @@ import { formatDateTime } from "@/lib/format";
 export async function GET(req) {
 	if (!(await isAdmin())) return new Response("Unauthorized", { status: 401 });
 	const sp = new URL(req.url).searchParams;
-	const rows = await exportContacts({ status: STATUS[sp.get("status")] ? sp.get("status") : "", q: (sp.get("q") || "").slice(0, 50) });
+	const rows = await exportContacts({ status: STATUS[sp.get("status")] ? sp.get("status") : "", q: (sp.get("q") || "").slice(0, 50), date: sp.get("date") || "" });
 
 	const cell = (v) => {
 		let s = String(v ?? "");

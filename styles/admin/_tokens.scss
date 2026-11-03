@@ -1,0 +1,104 @@
+// =========================================================
+// 디자인 토큰
+//
+// - 간격/크기: 4, 8 의 배수
+// - 글자 크기: 14(보조) / 16(본문, 최소 기준) / 20(카드 제목) / 24(페이지 제목) / 32(수치)
+// - 글자 굵기: 700(제목, 강조) / 400(본문) / 300(설명, 보조)
+// - 모서리: 8px 로 통일 (높이 24px 이하의 아주 작은 요소만 4px)
+// - 색상은 화면 모드(light/dark)에 따라 바뀌므로 CSS 변수(_root.scss)로 정의합니다.
+// =========================================================
+
+// 간격
+$space-1: 4px;
+$space-2: 8px;
+$space-3: 12px;
+$space-4: 16px;
+$space-5: 24px;
+$space-6: 32px;
+$space-7: 40px;
+$space-8: 48px;
+$space-9: 64px;
+
+// 글자 크기 / 줄 높이
+// 크기 값($font-*-px)은 CSS 변수(--adm-fs-*)의 기본값이고, 스타일에서는 변수를 씁니다.
+// 480px 이하에서는 _responsive.scss 가 변수를 2px 씩 줄입니다. (계산에는 $font-*-px 를 씀)
+$font-caption-px: 14px;
+$font-body-px: 16px;
+$font-title-px: 20px;
+$font-heading-px: 24px;
+$font-display-px: 32px;
+
+$font-caption: var(--adm-fs-caption, #{$font-caption-px});
+$font-body: var(--adm-fs-body, #{$font-body-px});
+$font-title: var(--adm-fs-title, #{$font-title-px});
+$font-heading: var(--adm-fs-heading, #{$font-heading-px});
+$font-display: var(--adm-fs-display, #{$font-display-px});
+
+$line-caption: 20px;
+$line-body: 24px;
+$line-title: 28px;
+$line-heading: 32px;
+$line-display: 40px;
+
+// 글자 굵기
+$weight-bold: 700;
+$weight-regular: 400;
+$weight-light: 300;
+
+// 모서리: 전체 8px 로 통일, 높이 24px 이하의 아주 작은 요소(배지, 개수 표시, 기간 선택 칸)만 4px
+// (sm/md/lg 는 예전 이름을 유지하기 위한 별칭이며 모두 8px 입니다)
+$radius: 8px;
+$radius-xs: 4px;
+$radius-sm: $radius;
+$radius-md: $radius;
+$radius-lg: $radius;
+
+// 컨트롤 높이
+$control-sm: 32px;
+$control-md: 40px;
+$control-lg: 48px;
+
+// 레이아웃
+$rail-width: 80px; // 48px 아이콘 버튼 + 좌우 16px
+$rail-width-xs: 64px; // 480px 이하: 48px 아이콘 버튼 + 좌우 8px
+$flyout-width: 240px;
+$content-max: none; // 본문 최대 폭 제한 없음 (하위 메뉴 패널 오른쪽을 꽉 채움)
+$content-gutter: 40px; // 하위 메뉴 패널·화면 오른쪽 끝과 본문 사이 간격
+$notify-width: 432px;
+
+// 아이콘 SVG (mask 로 쓰므로 선 색은 의미 없음, 실제 색은 background: currentColor)
+$chevron-right: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 5l7 7-7 7'/%3E%3C/svg%3E");
+
+// 선택상자 화살표 (배경 이미지로 쓰므로 색을 직접 지정: 라이트/다크 모두 보이는 회색)
+$select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23999999' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+
+$check-mark:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E");
+
+// 글꼴
+$font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, "Apple SD Gothic Neo", "Malgun Gothic", "맑은 고딕", sans-serif;
+$icon-family: "Material Symbols Rounded";
+
+// 반응형 기준 (_responsive.scss)
+//  ~ $bp-sm : 모바일. 상단 바 + 좌측 메뉴 서랍
+//  ~ $bp-md : 태블릿. 아이콘 메뉴만 두고 하위 메뉴 패널은 본문 위에 겹쳐 열림
+//  ~ $bp-lg : 좁은 데스크톱. 대시보드·통계 카드 열 수만 줄임
+$bp-xl: 1500px;             // 대시보드 접속 통계: 접속 기기를 아래로
+$bp-lg: 1280px;
+$bp-md: 960px;
+$bp-sm: 640px;
+$bp-xs: 480px;              // 작은 휴대폰. 카드 머리의 도구 버튼 줄을 가로 스크롤로
+
+$topbar-height: 56px;       // 모바일 상단 바
+$content-gutter-md: 24px;   // 태블릿 본문 좌우 여백
+$content-gutter-sm: 16px;   // 모바일 본문 좌우 여백
+
+// 모션
+$ease: cubic-bezier(.2, 0, 0, 1);
+$duration: .16s;
+
+// 입장 애니메이션 (페이지 페이드인, 대시보드·통계 카드). 더 빠르게/느리게 하려면 여기만 바꿉니다.
+// 그래프·숫자 애니메이션 속도는 js/adm_chart.js 의 ENTER_* 값입니다.
+$enter-ease: cubic-bezier(.22, 1, .36, 1);
+$enter-page: .8s;  // 페이지 제목·본문
+$enter-card: 1s;   // 카드 하나
+$enter-step: .1s;  // 카드 사이 시간차

@@ -1,0 +1,158 @@
+@use "tokens" as *;
+@use "theme" as *;
+@use "mixins" as *;
+
+// =========================================================
+// 알림 패널 (좌측 메뉴 하단의 종 아이콘)
+// =========================================================
+@mixin styles {
+    // 위치·그림자·열고 닫는 애니메이션은 rail-panel mixin (내 정보 메뉴와 같음)
+    .adm_notify {
+        display: flex;
+        flex-direction: column;
+        width: $notify-width;
+        height: min(560px, calc(100vh - #{$space-6}));
+        overflow: hidden;
+        border: 0;
+        @include surface($radius-lg);
+        @include rail-panel;
+
+        &[hidden] {
+            display: none;
+        }
+    }
+
+    .adm_notify_head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: $space-5 $space-5 $space-4;
+
+    }
+
+    // 닫기(X)·알림 삭제(X) 버튼: 같은 크기(40px, 아이콘 20px), 배경은 호버할 때만
+    .adm_notify_head .adm_icon_btn,
+    .adm_notify_item .adm_icon_btn {
+        width: $control-md;
+        height: $control-md;
+        border: 0;
+        background: none;
+        color: var(--adm-text-sub);
+
+        &:hover {
+            background: theme-color(soft);
+            color: theme-color();
+        }
+
+        .material-symbols-rounded {
+            font-size: 20px;
+        }
+    }
+
+    .adm_notify_title {
+        color: var(--adm-text-strong);
+        @include text(title, $weight-bold);
+    }
+
+    .adm_notify .adm_tabs {
+        padding: 0 $space-2;
+    }
+
+    .adm_notify_list {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+    }
+
+    .adm_notify_item {
+        position: relative;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) $control-md;
+        align-items: start;
+        gap: $space-3;
+        padding: $space-4 $space-5;
+        border-bottom: 1px solid var(--adm-line-soft);
+        @include transition(background-color);
+
+        &:hover {
+            background: theme-color(tint);
+        }
+
+        // 읽지 않은 알림
+        &.is-unread::before {
+            content: "";
+            position: absolute;
+            top: $space-4;
+            left: $space-2;
+            width: $space-2;
+            height: $space-2;
+            border-radius: $radius-sm;
+            background: theme-color();
+        }
+    }
+
+    .adm_notify_body {
+        display: flex;
+        flex-direction: column;
+        gap: $space-1;
+        min-width: 0;
+        color: var(--adm-text);
+    }
+
+    .adm_notify_meta {
+        display: flex;
+        align-items: center;
+        gap: $space-2;
+
+        b {
+            color: var(--adm-text-strong);
+            @include text(caption, $weight-bold);
+        }
+
+        time {
+            color: var(--adm-text-muted);
+            @include text(caption, $weight-light);
+        }
+    }
+
+    .adm_notify_text {
+        color: var(--adm-text);
+        @include text(body);
+        word-break: keep-all;
+        overflow-wrap: anywhere;
+    }
+
+    .adm_notify_empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: $space-2;
+        padding: $space-9 $space-5;
+        color: var(--adm-text-muted);
+        @include text(body, $weight-light);
+        text-align: center;
+
+        .material-symbols-rounded {
+            font-size: 40px;
+        }
+    }
+
+    .adm_notify_foot {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: $space-3;
+        padding: $space-4 $space-5;
+        border-top: 1px solid var(--adm-line-soft);
+
+        > span {
+            color: var(--adm-text-muted);
+            @include text(caption, $weight-light);
+        }
+    }
+
+    .adm_notify_actions {
+        display: flex;
+        gap: $space-2;
+    }
+}

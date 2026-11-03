@@ -1,0 +1,633 @@
+@use "tokens" as *;
+@use "theme" as *;
+@use "mixins" as *;
+
+// =========================================================
+// 관리자 메인 대시보드 (skin/dashboard.php)
+// =========================================================
+// 배치 (3열)
+//   1행: 접속 통계 + 접속 기기(3칸)
+//   2행: 캘린더        | 관리자님   | 바로가기
+//   3행: 1:1 문의      | 최근게시물 | 서버정보
+//   4행: 주문현황(2칸)              | 결제수단별 주문현황 (쇼핑몰 사용 시)
+@mixin styles {
+    .dash {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: $space-5;
+        padding-top: $space-6;
+    }
+
+    .dash_span2 {
+        grid-column: span 2;
+    }
+
+    .dash_span3 {
+        grid-column: 1 / -1;
+    }
+
+    // 더보기(점 3개): 40px. 카드 제목(줄높이 28px) 옆에서는 위아래를 6px 씩 당겨 제목 줄 가운데에 맞춥니다.
+    // 반응: 토스 스타일 아이콘 버튼 (icon-motion, 호버하면 점 3개가 차례로 튀어 오름)
+    // 호버: 포인트 컬러 판 + 흰 점
+    .dash_more {
+        --adm-icon-fill: #{theme-color()};
+        flex: 0 0 auto;
+        margin: -6px (-$space-2) -6px 0;
+        @include icon-button($control-md);
+        @include icon-motion;
+
+        &:hover {
+            background: transparent;
+            color: theme-color(text);
+        }
+
+        &:active {
+            transform: none;
+        }
+    }
+
+    // 기간 선택과 나란히 있을 때는 같은 40px 줄에 맞춥니다.
+    .adm_card_tools .dash_more {
+        margin: 0;
+    }
+
+    // 인사: 인사 문장 → 처리 대기 목록 → (카드 맨 아래) 내 접속 정보
+    .dash_hello {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .dash_hello_text {
+        color: var(--adm-text);
+        @include text(body);
+
+        b {
+            color: var(--adm-text-strong);
+            font-weight: $weight-bold;
+        }
+    }
+
+    // 처리 대기: 항목명 | 건수, 줄 사이 구분선 (최근게시물 목록과 같은 줄 모양)
+    .dash_tasks {
+        margin-top: $space-4;
+
+        li + li {
+            border-top: 1px solid var(--adm-line-soft);
+        }
+    }
+
+    .dash_task {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: $space-3;
+        padding: $space-3 0;
+        color: var(--adm-text);
+
+        &:hover .dash_task_name {
+            color: theme-color();
+        }
+
+        // 처리할 것이 없는 항목은 흐리게
+        &.is-zero .dash_task_count {
+            color: var(--adm-text-muted);
+
+            b {
+                color: inherit;
+                font-weight: $weight-regular;
+            }
+        }
+    }
+
+    .dash_task_name {
+        min-width: 0;
+        color: var(--adm-text-strong);
+        @include text(body);
+        @include ellipsis;
+        @include transition(color);
+    }
+
+    .dash_task_count {
+        flex: 0 0 auto;
+        color: var(--adm-text-sub);
+        @include text(caption);
+
+        b {
+            margin-right: 2px;
+            color: var(--adm-text-strong);
+            @include text(title, $weight-bold);
+        }
+    }
+
+    // 내 접속 정보: 카드 맨 아래 작은 글자
+    .dash_login {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: $space-1 $space-2;
+        margin-top: auto;
+        padding-top: $space-4;
+        color: var(--adm-text-muted);
+        @include text(caption);
+
+        .material-symbols-rounded {
+            font-size: 16px;
+        }
+    }
+
+    // 바로가기 (config.php 의 shortcuts)
+    //  기본: 배경 없이 회색 아이콘(28px, 좌측 메뉴와 같은 크기) + 메뉴 이름
+    //  호버: 칸을 꽉 채우는 #f9f9f9(--adm-surface-soft) 판이 0.9 크기에서 쫀득하게 튕기며 커지고,
+    //        아이콘·이름은 포인트 컬러 (좌측 메뉴와 같은 rail-hover-plate)
+    //  칸: 정사각형(1:1). 바깥 테두리 없이 칸 사이에만 같은 색(#f9f9f9) 선을 긋습니다.
+    //      (오른쪽 끝 열은 오른쪽 선 없음, 마지막 줄은 아래 선 없음. 마지막 줄이 3칸보다 적어도 맞음)
+    //  --adm-surface-soft 는 다크 모드에서 어두운 값으로 바뀝니다. (_root.scss)
+    .dash_shortcuts {
+        --dash-shortcut-line: var(--adm-surface-soft);
+        --dash-shortcut-hover: var(--adm-surface-soft);
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+
+        > li {
+            border-right: 1px solid var(--dash-shortcut-line);
+            border-bottom: 1px solid var(--dash-shortcut-line);
+        }
+
+        > li:nth-child(3n) {
+            border-right: 0;
+        }
+
+        // 마지막 줄 = 마지막 줄의 첫 칸(3n+1 번째이면서 뒤에서 3번째 안)과 그 뒤 칸들
+        > li:nth-child(3n + 1):nth-last-child(-n + 3),
+        > li:nth-child(3n + 1):nth-last-child(-n + 3) ~ li {
+            border-bottom: 0;
+        }
+    }
+
+    .dash_shortcut_link {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: $space-1;
+        aspect-ratio: 1 / 1;
+        padding: $space-2;
+        color: var(--adm-text-sub);
+        text-align: center;
+        @include transition(color);
+        @include rail-hover-plate(var(--dash-shortcut-hover), .9);
+    }
+
+    .dash_shortcut_icon {
+        display: grid;
+        place-items: center;
+        width: $control-lg;
+        height: $space-6;
+
+        .material-symbols-rounded {
+            font-size: 28px;
+        }
+    }
+
+    .dash_shortcut_name {
+        max-width: 100%;
+        color: inherit;
+        @include text(caption);
+        word-break: keep-all;
+        overflow-wrap: anywhere;
+    }
+
+    // 주문 요약 수치
+    .dash_kpis {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: $space-5;
+        margin-bottom: $space-5;
+
+        li {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            align-items: baseline;
+            gap: 0 $space-1;
+        }
+    }
+
+    .dash_kpi_label {
+        grid-column: 1 / -1;
+        margin-bottom: $space-2;
+        color: var(--adm-text-muted);
+        @include text(caption);
+    }
+
+    .dash_kpi_value {
+        color: var(--adm-text-strong);
+        @include text(display, $weight-bold);
+
+        &.is-accent {
+            color: theme-color();
+        }
+    }
+
+    .dash_kpi_unit {
+        color: var(--adm-text-muted);
+        @include text(caption);
+    }
+
+    // 접속 통계 + 접속 기기
+    // 접속 통계(맨 아래, 전체 너비): 그래프를 크게, 접속 기기는 오른쪽
+    .dash_split {
+        display: grid;
+        grid-template-columns: minmax(0, 2.4fr) minmax(320px, 1fr);
+        gap: $space-6;
+    }
+
+    .dash_split_main,
+    .dash_split_side {
+        min-width: 0;
+    }
+
+    .dash_split_side {
+        padding-left: $space-6;
+        border-left: 1px solid var(--adm-line-soft);
+    }
+
+    .dash_visit .adm_chart {
+        height: 320px;
+    }
+
+    // 목록 (최근게시물, 1:1 문의)
+    .dash_list {
+        li + li {
+            border-top: 1px solid var(--adm-line-soft);
+        }
+    }
+
+    .dash_list_link {
+        display: flex;
+        flex-direction: column;
+        gap: $space-1;
+        padding: $space-3 0;
+        color: var(--adm-text);
+
+        // 호버: 제목이 포인트 컬러 그대로 (중간색이 보이지 않게 바로 바뀜)
+        &:hover .dash_list_title {
+            color: theme-color();
+        }
+    }
+
+    .dash_list_row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: $space-3;
+    }
+
+    .dash_list_title {
+        min-width: 0;
+        color: var(--adm-text-strong);
+        @include text(body);
+        @include ellipsis;
+    }
+
+    .dash_list_meta {
+        display: flex;
+        justify-content: space-between;
+        gap: $space-3;
+        color: var(--adm-text-muted);
+        @include text(caption, $weight-light);
+
+        span {
+            @include ellipsis;
+        }
+
+        time {
+            flex: 0 0 auto;
+        }
+    }
+
+    // 1:1 문의 요약
+    .dash_qa_sum {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: $space-3;
+        margin-bottom: $space-3;
+
+        p {
+            color: var(--adm-text-muted);
+            @include text(caption);
+        }
+    }
+
+    .dash_qa_wait {
+        margin-right: $space-1;
+        color: var(--adm-text-strong);
+        @include text(display, $weight-bold);
+    }
+
+    // 서버정보 (한 칸 너비이므로 항목명 | 값 한 줄씩)
+    .dash_server {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: $space-3;
+
+        > div {
+            display: flex;
+            gap: $space-3;
+            min-width: 0;
+        }
+
+        dt {
+            flex: 0 0 88px;
+            color: var(--adm-text-muted);
+            @include text(caption, $weight-light);
+        }
+
+        dd {
+            min-width: 0;
+            color: var(--adm-text-strong);
+            @include text(caption, $weight-bold);
+            overflow-wrap: anywhere;
+        }
+    }
+
+    // ---------------------------------------------------------
+    // 캘린더
+    // ---------------------------------------------------------
+    // 같은 줄의 다른 카드 높이에 맞춰 날짜 칸이 위아래로 늘어납니다. (칸 최소 높이 56px)
+    .dash_calendar {
+        display: flex;
+        flex-direction: column;
+
+        .dash_cal_days {
+            flex: 1 1 auto;
+            grid-auto-rows: minmax(56px, 1fr);
+        }
+
+        &.is-loading .dash_cal_days {
+            opacity: .5;
+        }
+
+        // 도구 줄(오른쪽 끝): [오늘] 과 화살표 묶음 사이 12px, 이전/다음 화살표 사이 8px
+        .adm_card_tools {
+            gap: $space-3;
+        }
+
+        .adm_btn_group {
+            gap: $space-2;
+        }
+    }
+
+    // 지금 보고 있는 년월: '캘린더' 제목 아래 설명 줄 (.adm_card_desc 모양 그대로)
+    .dash_cal_title {
+        white-space: nowrap;
+    }
+
+    .dash_cal_week,
+    .dash_cal_days {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+    }
+
+    .dash_cal_week {
+        margin-top: $space-2;
+        border: 1px solid var(--adm-line-soft);
+        border-bottom: 0;
+        border-radius: $radius-md $radius-md 0 0;
+
+        li {
+            padding: $space-2 0;
+            color: var(--adm-text-sub);
+            @include text(caption, $weight-bold);
+            text-align: center;
+
+            &.is-sun { color: var(--adm-danger); }
+            &.is-sat { color: theme-color(); }
+        }
+    }
+
+    .dash_cal_days {
+        border-left: 1px solid var(--adm-line-soft);
+        border-top: 1px solid var(--adm-line-soft);
+        border-radius: 0 0 $radius-md $radius-md;
+        overflow: hidden;
+        @include transition(opacity);
+
+        // 한 칸 너비 캘린더: 날짜 칸 높이 56px
+        > li {
+            min-height: 56px;
+            border-right: 1px solid var(--adm-line-soft);
+            border-bottom: 1px solid var(--adm-line-soft);
+
+            > .dash_cal_num {
+                display: block;
+                padding: $space-2;
+            }
+
+            button {
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                width: 100%;
+                height: 100%;
+                min-height: 56px;
+                padding: $space-2;
+                border: 0;
+                background: none;
+                text-align: left;
+                @include transition(background-color);
+
+                &:hover {
+                    background: theme-color(tint);
+                }
+            }
+        }
+
+        .is-out .dash_cal_num {
+            color: var(--adm-text-muted);
+            opacity: .6;
+        }
+
+        .is-sun .dash_cal_num { color: var(--adm-danger); }
+        .is-sat .dash_cal_num { color: theme-color(); }
+
+        // 오늘: 배경 없이 날짜 숫자에 밑줄
+        .is-today .dash_cal_num {
+            text-decoration: underline;
+            text-decoration-thickness: 2px;
+            text-underline-offset: 4px;
+        }
+
+        .is-selected button {
+            box-shadow: inset 0 0 0 2px theme-color();
+        }
+    }
+
+    .dash_cal_num {
+        color: var(--adm-text-strong);
+        @include text(body, $weight-bold);
+        line-height: 1;
+    }
+
+    .dash_cal_dots {
+        display: flex;
+        flex-wrap: wrap;
+        gap: $space-1;
+
+        i {
+            width: $space-2;
+            height: $space-2;
+            border-radius: $radius-sm;
+        }
+    }
+
+    // 날짜 세부정보 팝업: 캘린더 카드 안쪽을 덮는 어두운 막 + 가운데 상자 (js 의 openPopup)
+    // 카드(.adm_card)가 position: relative 이므로 카드 크기 안에서만 열립니다.
+    .dash_cal_pop {
+        position: absolute;
+        inset: 0;
+        z-index: 3;
+        display: grid;
+        place-items: center;
+        padding: $space-5;
+        border-radius: inherit;
+        background: rgba(0, 0, 0, .24);
+        animation: adm-fade-in .2s $ease;
+
+        &[hidden] {
+            display: none;
+        }
+    }
+
+    .dash_cal_pop_box {
+        position: relative;
+        width: 100%;
+        max-width: 320px;
+        padding: $space-5;
+        border-radius: $radius;
+        background: var(--adm-surface);
+        box-shadow: var(--adm-shadow-lg);
+        animation: adm-rise-in .28s $enter-ease;
+
+        ul {
+            display: flex;
+            flex-direction: column;
+            gap: $space-3;
+            margin-top: $space-4;
+        }
+
+        li {
+            display: flex;
+            align-items: center;
+            gap: $space-2;
+            color: var(--adm-text-sub);
+            @include text(body);
+
+            > a,
+            > b:last-child {
+                margin-left: auto;
+            }
+        }
+
+        i {
+            width: $space-2;
+            height: $space-2;
+            border-radius: $radius-sm;
+        }
+
+        a {
+            color: var(--adm-text-strong);
+
+            &:hover {
+                color: theme-color();
+            }
+        }
+
+        b {
+            color: inherit;
+            font-weight: $weight-bold;
+        }
+    }
+
+    .dash_cal_pop_close {
+        position: absolute;
+        top: $space-3;
+        right: $space-3;
+        width: $control-sm;
+        height: $control-sm;
+
+        .material-symbols-rounded {
+            font-size: 20px;
+        }
+    }
+
+    .dash_cal_pop_msg {
+        padding-right: $space-6;
+        color: var(--adm-text-sub);
+        @include text(body);
+    }
+    .dash_cal_detail_title {
+        color: var(--adm-text-strong);
+        @include text(body, $weight-bold);
+    }
+
+    // ---------------------------------------------------------
+    // 반응형
+    // ---------------------------------------------------------
+    // 1500px 이하: 접속 통계 옆에 접속 기기를 두면 그래프·제목 줄이 좁아 깨지므로
+    // 접속 기기를 아래로 내리고(구분선은 위쪽), 도넛과 범례는 가로로 나란히 둡니다.
+    // 접속 통계 제목 줄은 버튼이 모자라면 제목 아래 줄로 내려갑니다.
+    @media (min-width: $bp-sm + 1) and (max-width: $bp-xl) {
+        .dash_split {
+            grid-template-columns: minmax(0, 1fr);
+        }
+
+        .dash_split_side {
+            padding: $space-6 0 0;
+            border-top: 1px solid var(--adm-line-soft);
+            border-left: 0;
+        }
+
+        .dash_visit .dash_split_main > .adm_card_head {
+            flex-wrap: wrap;
+
+            > :first-child {
+                flex: 0 0 auto;
+                white-space: nowrap;
+            }
+        }
+
+        .dash_visit .dash_split_main .adm_card_tools {
+            flex: 1 1 auto;
+        }
+
+        .dash_visit .adm_donut_wrap.is-stack {
+            grid-template-columns: 192px minmax(0, 360px);
+            justify-content: center;
+            gap: $space-7;
+        }
+    }
+
+    @media (max-width: $bp-lg) {
+        .dash {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .dash_span2 {
+            grid-column: 1 / -1;
+        }
+    }
+
+    @media (max-width: $bp-md) {
+        .dash,
+        .dash_split,
+        .dash_kpis {
+            grid-template-columns: minmax(0, 1fr);
+        }
+
+        .dash_split_side {
+            padding-left: 0;
+            border-left: 0;
+        }
+    }
+}

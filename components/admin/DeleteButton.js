@@ -12,7 +12,7 @@ export default function DeleteButton({ id, name }) {
 			}}
 		>
 			<input type="hidden" name="id" value={id} />
-			<button type="submit" className="adm_btn is-danger">
+			<button type="submit" className="adm_btn is-sm is-danger">
 				삭제
 			</button>
 		</form>

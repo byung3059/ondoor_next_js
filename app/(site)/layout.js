@@ -1,6 +1,7 @@
 import SiteHeader from "@/components/layout/SiteHeader";
 import SiteFooter from "@/components/layout/SiteFooter";
 import TouchScrollLock from "@/components/layout/TouchScrollLock";
+import Tracker from "@/components/fx/Tracker";
 import PopupProvider from "@/components/popup/PopupProvider";
 import ContactWidget from "@/components/contact/ContactWidget";
 import ContactForm from "@/components/contact/ContactForm";
@@ -22,6 +23,7 @@ export default function SiteLayout({ children }) {
 				</ContactWidget>
 			</PopupProvider>
 			<TouchScrollLock />
+			<Tracker />
 			<link rel="stylesheet" href={`${THEME_URL}/scss/layout.min.css`} precedence="theme" />
 		</>
 	);

@@ -19,6 +19,7 @@
     "three": "0.128.0"
   },
   "devDependencies": {
-    "@electric-sql/pglite": "0.5.14"
+    "@electric-sql/pglite": "0.5.14",
+    "sass": "1.107.1"
   }
 }

@@ -1,0 +1,209 @@
+@use "tokens" as *;
+@use "theme" as *;
+@use "mixins" as *;
+
+// =========================================================
+// 입력 요소
+//  - 입력칸·선택상자·여러 줄 입력칸: 테두리 없이 채움, 포커스는 그림자만 (field mixin)
+//  - 파일 선택, 필수/읽기 전용 입력칸
+//  - 체크박스·라디오: 토스 스타일 (toggle-control mixin)
+// 키보드 포커스는 _reset.scss 의 :focus-visible 이 모든 요소에 그림자로 표시합니다.
+// =========================================================
+@mixin styles {
+    // 파일 선택
+    input[type="file"] {
+        color: var(--adm-text-sub);
+        @include text(body);
+
+        &::file-selector-button {
+            height: $control-md;
+            margin-right: $space-3;
+            padding: 0 $space-4;
+            border: 0;
+            border-radius: $radius;
+            background: theme-color(soft);
+            color: theme-color();
+            font: inherit;
+            font-weight: $weight-bold;
+            cursor: pointer;
+        }
+
+        // 파일 선택 버튼은 움직임 없이 색만 바뀝니다.
+        &:hover::file-selector-button {
+            background: color-mix(in srgb, theme-color() 22%, var(--adm-surface));
+        }
+    }
+
+    // 입력칸·선택상자
+    .frm_input,
+    .tbl_input,
+    .sch_input,
+    select,
+    input[type="text"]:not([class]),
+    input[type="password"]:not([class]),
+    input[type="number"]:not([class]),
+    input[type="email"]:not([class]),
+    input[type="date"]:not([class]),
+    input[type="search"]:not([class]),
+    input[type="url"]:not([class]),
+    input[type="tel"]:not([class]) {
+        @include field;
+    }
+
+    // 선택상자: 기본 화살표 대신 직접 그린 화살표를 오른쪽 16px 안쪽에 두어
+    // 글자 왼쪽 여백(16px)과 화살표 오른쪽 여백을 같게 맞춥니다.
+    select {
+        -webkit-appearance: none;
+        appearance: none;
+        padding-right: $space-4 + $space-4 + $space-2;
+        background-image: $select-arrow;
+        background-repeat: no-repeat;
+        background-position: right $space-4 center;
+        background-size: $space-4;
+        cursor: pointer;
+
+        &[multiple],
+        &[size]:not([size="1"]) {
+            padding-right: $space-4;
+            background-image: none;
+        }
+    }
+
+    // 여러 줄 입력칸
+    // vertical-align: top → 글자 기준선 아래 여백이 생기지 않아, 아래 도움말과의 간격이 입력칸과 같아집니다.
+    textarea {
+        vertical-align: top;
+        padding: $space-3;
+        border: 0;
+        border-radius: $radius;
+        background-color: var(--adm-btn-bg);
+        color: var(--adm-text-strong);
+        @include text(body);
+        outline: none;
+        @include transition(box-shadow, background-color);
+
+        &:focus {
+            background-color: var(--adm-surface);
+            box-shadow: $focus-shadow;
+        }
+    }
+
+    // 기본 관리자 CSS 가 필수 입력칸 배경을 흰색 !important 로 고정하므로 같은 규칙으로 되돌립니다.
+    .required,
+    input.required,
+    textarea.required {
+        background-color: var(--adm-btn-bg) !important;
+
+        &:focus {
+            background-color: var(--adm-surface) !important;
+        }
+    }
+
+    // 필수 선택상자: 기본 관리자 CSS 의 필수 표시 이미지(!important)가 화살표를 덮으므로 화살표로 되돌립니다.
+    select.required {
+        background-image: $select-arrow !important;
+        background-repeat: no-repeat !important;
+        background-position: right $space-4 center !important;
+        background-size: $space-4 !important;
+    }
+
+    // 브라우저 자동완성(저장된 비밀번호 등)의 연한 파랑 배경을 다른 입력칸과 같은 회색으로 덮습니다.
+    input:-webkit-autofill,
+    input:-webkit-autofill:hover {
+        -webkit-box-shadow: 0 0 0 40px var(--adm-btn-bg) inset;
+        -webkit-text-fill-color: var(--adm-text-strong);
+        caret-color: var(--adm-text-strong);
+    }
+
+    input:-webkit-autofill:focus {
+        -webkit-box-shadow: 0 0 0 40px var(--adm-surface) inset, #{$focus-shadow};
+    }
+
+    // 읽기 전용 입력칸: 같은 회색 + 흐린 글자로 구분 (회색을 따로 두지 않음)
+    input[readonly].frm_input,
+    .frm_input.readonly {
+        background-color: var(--adm-btn-bg) !important;
+        color: var(--adm-text-muted);
+        cursor: default;
+    }
+
+    // ---------------------------------------------------------
+    // 체크박스 · 라디오 (토스 스타일)
+    // ---------------------------------------------------------
+    // 체크박스: 흰 체크가 왼쪽부터 그려짐
+    input[type="checkbox"] {
+        @include toggle-control(adm-check-draw .28s cubic-bezier(.65, 0, .35, 1) .06s both);
+
+        &::after {
+            width: $space-3;
+            height: $space-3;
+            -webkit-mask: $check-mark center / contain no-repeat;
+            mask: $check-mark center / contain no-repeat;
+        }
+    }
+
+    // 라디오: 흰 바탕에 안쪽 그림자(6px 고리)로 그립니다. 가운데 흰 점(8px)이 남습니다.
+    // 크기를 transform 으로 바꾸면 확대 중 가장자리가 깨지므로, 고리 두께만 움직여 점이 톡 튀어나오게 합니다.
+    input[type="radio"] {
+        -webkit-appearance: none;
+        appearance: none;
+        flex: 0 0 auto;
+        width: $space-5 - $space-1;
+        height: $space-5 - $space-1;
+        margin: 0 $space-2 0 0;
+        padding: 0;
+        border: 0;
+        border-radius: 50%;
+        background: #ffffff;
+        box-shadow: inset 0 0 0 6px var(--adm-check-off);
+        vertical-align: middle;
+        cursor: pointer;
+        transition: box-shadow .2s $ease;
+
+        &:checked {
+            box-shadow: inset 0 0 0 6px theme-color();
+        }
+
+        &:checked:hover {
+            box-shadow: inset 0 0 0 6px theme-color(hover);
+        }
+
+        &.is-toggled:checked {
+            animation: adm-radio-in .36s cubic-bezier(.34, 1.56, .64, 1);
+        }
+
+        &:disabled {
+            opacity: .4;
+            cursor: not-allowed;
+        }
+
+        // 키보드 포커스: 안쪽 고리는 그대로 두고 바깥쪽 선으로 표시
+        &:focus {
+            outline: none;
+        }
+
+        &:focus-visible {
+            outline: 3px solid theme-color(soft);
+            outline-offset: 2px;
+        }
+    }
+
+    // 기본 관리자 CSS 의 outline 을 지우고 _reset.scss 의 그림자 포커스만 남깁니다.
+    button:focus-visible,
+    a:focus-visible,
+    select:focus-visible,
+    input:focus-visible {
+        outline: none;
+    }
+
+    // 도움말 / 라벨
+    .frm_info {
+        padding: 0 0 $space-1;
+        color: var(--adm-text-muted);
+        @include text(caption, $weight-light);
+    }
+
+    label {
+        color: inherit;
+    }
+}

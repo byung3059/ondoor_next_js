@@ -1,0 +1,44 @@
+@charset "utf-8";
+// =========================================================
+// 관리자 화면 스타일 — 그누보드 관리자 테마(extend/adm_theme)의 SCSS를 그대로 가져와 씀
+//   _theme ~ _responsive: 원본 파일 그대로 (통계 화면 _report, 페이지별 정리 _screens는 쓰지 않아 뺌)
+//   _ondoor: 이 프로젝트에서 더한 것 (그누보드 기본 CSS에 있던 것, 순위 목록, 상담 목록 · 상세, 로그인)
+// app/admin/layout.js가 불러오며, Next.js가 Sass로 컴파일함
+// =========================================================
+@use "theme" with (
+	$theme-color: #444444,
+	$theme-dark-color: #ffffff
+);
+
+@use "tokens";
+@use "root";
+@use "reset";
+@use "rail";
+@use "shell";
+@use "buttons";
+@use "forms";
+@use "ui";
+@use "page";
+@use "table";
+@use "notify";
+@use "chart";
+@use "dashboard";
+@use "ondoor";
+@use "responsive";
+
+// 글꼴(Pretendard) · 아이콘(Material Symbols)은 app/admin/layout.js가 <link>로 불러옴
+
+:root {
+	@include rail.styles;
+	@include shell.styles;
+	@include buttons.styles;
+	@include forms.styles;
+	@include ui.styles;
+	@include page.styles;
+	@include table.styles;
+	@include notify.styles;
+	@include chart.styles;
+	@include dashboard.styles;
+	@include ondoor.styles;
+	@include responsive.styles;
+}

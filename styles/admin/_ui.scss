@@ -1,0 +1,327 @@
+@use "tokens" as *;
+@use "theme" as *;
+@use "mixins" as *;
+
+// =========================================================
+// 테마 UI 부품 (adm_* 클래스)
+//  카드, 기간 선택, 탭, 배지·알약, 범례, 빈 상태, 팝오버(내 정보 메뉴)
+// =========================================================
+@mixin styles {
+    // ---------------------------------------------------------
+    // 카드
+    // ---------------------------------------------------------
+    .adm_card {
+        position: relative;
+        min-width: 0;
+        padding: $space-5;
+        @include surface;
+    }
+
+    .adm_card_head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: $space-4;
+        margin-bottom: $space-5;
+    }
+
+    .adm_card_title {
+        margin: 0;
+        color: var(--adm-text-strong);
+        @include text(title, $weight-bold);
+
+        b {
+            font-size: inherit;
+            font-weight: $weight-bold;
+        }
+    }
+
+    .adm_card_desc {
+        margin-top: $space-1;
+        color: var(--adm-text-muted);
+        @include text(body, $weight-light);
+    }
+
+    .adm_card_tools {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-end;
+        gap: $space-2;
+    }
+
+    // ---------------------------------------------------------
+    // 기간 선택 (일간 / 주간 / 월간)
+    // 캘린더의 [오늘] [‹] [›] 버튼처럼 떨어진 회색 버튼, 선택된 버튼만 포인트 컬러로 채움
+    // 높이 40px: 옆의 아이콘 버튼(더보기 등)과 위아래 선이 맞습니다.
+    // ---------------------------------------------------------
+    .adm_segment {
+        display: inline-flex;
+        align-items: center;
+        gap: $space-1;
+
+        button {
+            @include button-base;
+
+            &.is-active {
+                background: theme-color();
+                color: theme-color(text);
+                font-weight: $weight-bold;
+                --adm-btn-fill: #{theme-color()};
+                cursor: default;
+            }
+        }
+    }
+
+    // ---------------------------------------------------------
+    // 탭: 밑줄 없이 글자 굵기·색과 개수 배지로 선택 상태 표시
+    // ---------------------------------------------------------
+    .adm_tabs {
+        display: flex;
+        border-bottom: 1px solid var(--adm-line-soft);
+
+        button {
+            flex: 1 1 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: $space-1;
+            height: $control-lg;
+            padding: 0 $space-2;
+            border: 0;
+            background: none;
+            color: var(--adm-text-sub);
+            @include text(body);
+            white-space: nowrap;
+            @include transition(color);
+
+            span {
+                min-width: 20px;
+                padding: 0 $space-1;
+                border-radius: $radius-xs;
+                background: var(--adm-surface-2);
+                color: var(--adm-text-sub);
+                @include text(caption, $weight-bold);
+            }
+
+            &:hover {
+                color: theme-color();
+            }
+
+            &.is-active {
+                color: var(--adm-text-strong);
+                font-weight: $weight-bold;
+
+                span {
+                    background: theme-color();
+                    color: theme-color(text);
+                }
+            }
+        }
+    }
+
+    // ---------------------------------------------------------
+    // 점 3개 (더보기): 버튼에 마우스를 올리면 점이 차례로 톡톡 튀어 오릅니다.
+    // ---------------------------------------------------------
+    .adm_dots {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+
+        i {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+    }
+
+    a:hover > .adm_dots i,
+    button:hover > .adm_dots i {
+        animation: adm-dot-wave .56s cubic-bezier(.34, 1.56, .64, 1);
+
+        &:nth-child(2) { animation-delay: .07s; }
+        &:nth-child(3) { animation-delay: .14s; }
+    }
+
+    // ---------------------------------------------------------
+    // 배지 / 알약
+    // ---------------------------------------------------------
+    // 배지: 상태 배지는 해당 색으로 채우고 흰 글자, 굵게 (반투명 배경 없음). 기본 배지는 옅은 회색
+    .adm_badge {
+        display: inline-flex;
+        align-items: center;
+        height: $space-5;
+        padding: 0 $space-2;
+        border-radius: $radius-xs;
+        background: var(--adm-surface-2);
+        color: var(--adm-text-sub);
+        @include text(caption, $weight-bold);
+        white-space: nowrap;
+
+        &.is-accent {
+            background: theme-color();
+            color: theme-color(text);
+        }
+
+        &.is-danger {
+            background: var(--adm-danger);
+            color: #ffffff;
+        }
+
+        &.is-success {
+            background: var(--adm-success);
+            color: #ffffff;
+        }
+    }
+
+    // 알약 (예: 대시보드의 관리자 등급): 흰 칩 + 연한 그림자, 아이콘만 색으로 구분
+    .adm_pill {
+        display: inline-flex;
+        align-items: center;
+        gap: $space-2;
+        height: $control-md;
+        padding: 0 $space-4;
+        border-radius: $radius;
+        color: var(--adm-text-strong);
+        @include text(caption, $weight-bold);
+        @include raised-chip;
+
+        .material-symbols-rounded {
+            font-size: 20px;
+            color: theme-color();
+        }
+
+        &.is-success .material-symbols-rounded {
+            color: var(--adm-success);
+        }
+    }
+
+    // ---------------------------------------------------------
+    // 범례 / 빈 상태
+    // ---------------------------------------------------------
+    .adm_legend {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: $space-2 $space-4;
+        margin-bottom: $space-3;
+
+        span {
+            display: inline-flex;
+            align-items: center;
+            gap: $space-2;
+            color: var(--adm-text-sub);
+            @include text(caption);
+        }
+
+        i {
+            width: $space-2;
+            height: $space-2;
+            border-radius: 50%;
+            background: var(--adm-text-muted);
+
+            &.is-c1 { background: var(--adm-c1); }
+            &.is-c2 { background: var(--adm-c2); }
+            &.is-c3 { background: var(--adm-c3); }
+            &.is-c4 { background: var(--adm-c4); }
+        }
+
+        .adm_legend_unit {
+            margin-left: auto;
+            color: var(--adm-text-muted);
+        }
+    }
+
+    .adm_empty {
+        padding: $space-5 0;
+        color: var(--adm-text-muted);
+        @include text(body, $weight-light);
+    }
+
+    // ---------------------------------------------------------
+    // 팝오버 (내 정보 메뉴)
+    // ---------------------------------------------------------
+    .adm_popover {
+        position: absolute;
+        z-index: 1000;
+        min-width: 208px;
+        padding: $space-2;
+        border: 0;
+        border-radius: $radius;
+        background: var(--adm-surface);
+        box-shadow: var(--adm-shadow-lg);
+
+        a {
+            display: flex;
+            align-items: center;
+            gap: $space-2;
+            height: $control-md;
+            padding: 0 $space-3;
+            border-radius: $radius;
+            color: var(--adm-text);
+            @include text(body);
+
+            .material-symbols-rounded {
+                font-size: 20px;
+                color: var(--adm-text-muted);
+            }
+
+            &:hover {
+                background: theme-color(tint);
+                color: theme-color();
+            }
+
+            &.is-danger,
+            &.is-danger .material-symbols-rounded {
+                color: var(--adm-danger);
+            }
+        }
+    }
+
+    // 내 정보 메뉴: 알림 패널과 같은 위치·그림자·애니메이션
+    .adm_profile_menu {
+        @include rail-panel;
+
+        &[hidden] {
+            display: none;
+        }
+    }
+
+    // 머리: [이름 / 등급] ……… [닫기 X] (X 는 이름 줄 가운데에 맞춤: 줄높이 24, 버튼 40 → 위로 8px)
+    .adm_profile_head {
+        display: flex;
+        align-items: flex-start;
+        gap: $space-2;
+        margin-bottom: $space-2;
+        padding: $space-2 $space-3 $space-3;
+        border-bottom: 1px solid var(--adm-line-soft);
+
+        .adm_icon_btn {
+            flex: 0 0 auto;
+            margin: (-$space-2) (-$space-2) 0 auto;
+            color: var(--adm-text-sub);
+
+            .material-symbols-rounded {
+                font-size: 20px;
+            }
+        }
+    }
+
+    .adm_profile_who {
+        display: flex;
+        flex-direction: column;
+        gap: $space-1;
+        min-width: 0;
+
+        strong {
+            color: var(--adm-text-strong);
+            @include text(body, $weight-bold);
+        }
+
+        span {
+            color: var(--adm-text-muted);
+            @include text(caption, $weight-light);
+        }
+    }
+}
