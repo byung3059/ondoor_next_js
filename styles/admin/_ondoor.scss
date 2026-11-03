@@ -11,6 +11,16 @@
 	@include sound-only;
 }
 
+// 원본 admin.css의 * { box-sizing: border-box } — 테마의 100% 너비 · 100vh 높이가 패딩을 포함한다고 기대함
+// (빠지면 로그인 비밀번호 칸이 박스 밖으로, 좌측 메뉴 아래 도구가 화면 밖으로 밀려남)
+html.adm-theme {
+	*,
+	*::before,
+	*::after {
+		box-sizing: border-box;
+	}
+}
+
 @mixin styles {
 	// 그누보드 기본 관리자 CSS의 좌측 메뉴 위치 (테마는 이 위에 덮어씀)
 	#gnb {
